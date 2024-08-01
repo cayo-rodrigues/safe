@@ -25,13 +25,6 @@ func (rs *RuleSet) WithMessage(msg string) RuleFunc {
 
 type RuleFunc func() *RuleSet
 
-type Fields []*struct {
-	Name  string
-	Value any
-	Rules []*RuleSet
-}
-type ErrorMessages map[string]string
-
 func Rules(ruleFuncs ...RuleFunc) []*RuleSet {
 	ruleSets := make([]*RuleSet, len(ruleFuncs))
 	for i := 0; i < len(ruleSets); i++ {
@@ -39,53 +32,6 @@ func Rules(ruleFuncs ...RuleFunc) []*RuleSet {
 	}
 
 	return ruleSets
-}
-
-func Validate(fields Fields) (ErrorMessages, bool) {
-	var messages ErrorMessages
-
-	for _, field := range fields {
-		for _, rs := range field.Rules {
-			rs.FieldValue = field.Value
-			isValid := rs.ValidateFunc(rs)
-			if !isValid {
-				if messages == nil {
-					messages = make(ErrorMessages)
-				}
-				msg := rs.MessageFunc(rs)
-				messages[field.Name] = msg
-				break // stop runing validate funcs after first fail
-			}
-		}
-	}
-
-	return messages, len(messages) == 0
-}
-
-func All(vals ...any) bool {
-	for _, val := range vals {
-		if !HasValue(val) {
-			return false
-		}
-	}
-	return true
-}
-
-func HasValue(val any) bool {
-	switch val := val.(type) {
-	case bool:
-		return val
-	case string:
-		return utf8.RuneCountInString(val) > 0
-	case int:
-		return val != 0
-	case float64:
-		return val != 0
-	case time.Time:
-		return !val.IsZero()
-	}
-
-	return false
 }
 
 func Required() *RuleSet {
