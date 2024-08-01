@@ -7,12 +7,30 @@ import (
 	"unicode/utf8"
 )
 
+// A safe.RuleSet is what actually validates a value agains a validate func (a "rule" if you will).
+//
+// It also is responsible for providing error messages thourgh a message func.
+//
+// Usualy, safe.RuleSets are not used directly.
+//
+// Instead, it is preffered to use safe.RuleFuncs (which is simply a func that returns *safe.RuleSet), like the ones exposed by this library.
 type RuleSet struct {
 	FieldValue   any
 	MessageFunc  func(*RuleSet) string
 	ValidateFunc func(*RuleSet) bool
 }
 
+// Modifies a default message from a RuleSet, effectively letting you provide your own custom error messages.
+//
+// Example usage:
+//
+//	fields := Fields{
+//		{
+//			Name:  "Username",
+//			Value: u.Username,
+//			Rules: Rules(Required().WithMessage("Why did you leave it blank?")),
+//		},
+//	}
 func (rs *RuleSet) WithMessage(msg string) RuleFunc {
 	rs.MessageFunc = func(rs *RuleSet) string {
 		return msg
@@ -23,8 +41,12 @@ func (rs *RuleSet) WithMessage(msg string) RuleFunc {
 	}
 }
 
+// You can make your own RuleFuncs.
+//
+// Look at the source code of safe.Required, safe.Email, safe.Max or safe.OneOf. It's not so complicated.
 type RuleFunc func() *RuleSet
 
+// Calls each of the provided RuleFuncs and returns the resulting RuleSets.
 func Rules(ruleFuncs ...RuleFunc) []*RuleSet {
 	ruleSets := make([]*RuleSet, len(ruleFuncs))
 	for i := 0; i < len(ruleSets); i++ {
@@ -34,6 +56,32 @@ func Rules(ruleFuncs ...RuleFunc) []*RuleSet {
 	return ruleSets
 }
 
+// The field must have a value. Zero values are not allowed, except for boolean fields.
+//
+// Supported field types: bool, string, int, float64, float32, time.Time
+//
+// Example:
+//
+//	u := &User{Username: "", BooleanField: false}
+//
+//	fields := Fields{
+//		{
+//			Name:  "Username",
+//			Value: u.Username,
+//			Rules: Rules(Required),
+//		},
+//		{
+//			Name:  "BooleanField",
+//			Value: u.BooleanField,
+//			Rules: Rules(Required),
+//		},
+//	}
+//	errors, ok := Validate(fields)
+//
+// In the example above, username field will not be valid, but the boolean field is valid,
+// because it has a value. In essence, safe.Required bypasses boolean fields.
+//
+// To validate boolean fields more specificaly, use safe.True and safe.False.
 func Required() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -41,6 +89,36 @@ func Required() *RuleSet {
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			return HasValue(rs.FieldValue)
+		},
+	}
+}
+
+func True() *RuleSet {
+	return &RuleSet{
+		MessageFunc: func(rs *RuleSet) string {
+			return MandatoryFieldMsg
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			boolean, ok := rs.FieldValue.(bool)
+			if !ok {
+				return false
+			}
+			return boolean == true
+		},
+	}
+}
+
+func False() *RuleSet {
+	return &RuleSet{
+		MessageFunc: func(rs *RuleSet) string {
+			return MandatoryFieldMsg
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			boolean, ok := rs.FieldValue.(bool)
+			if !ok {
+				return false
+			}
+			return boolean == false
 		},
 	}
 }
@@ -100,7 +178,7 @@ func Cpf() *RuleSet {
 				return true
 			}
 
-			return CPFRegex.MatchString(str)
+			return CpfRegex.MatchString(str)
 		},
 	}
 }
@@ -120,7 +198,7 @@ func Cnpj() *RuleSet {
 				return true
 			}
 
-			return CNPJRegex.MatchString(str)
+			return CnpjRegex.MatchString(str)
 		},
 	}
 }
@@ -140,7 +218,7 @@ func CpfCnpj() *RuleSet {
 				return true
 			}
 
-			return CPFRegex.MatchString(str) || CNPJRegex.MatchString(str)
+			return CpfRegex.MatchString(str) || CnpjRegex.MatchString(str)
 		},
 	}
 }
@@ -160,10 +238,31 @@ func CEP() *RuleSet {
 				return true
 			}
 
-			return CEPRegex.MatchString(str)
+			return CepRegex.MatchString(str)
 		},
 	}
 }
+
+func StrongPassword() *RuleSet {
+	return &RuleSet{
+		MessageFunc: func(rs *RuleSet) string {
+			return ""
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			pwd, ok := rs.FieldValue.(string)
+			if !ok {
+				return false
+			}
+
+			if pwd == "" {
+				return true
+			}
+
+			return StrongPasswordRegex.MatchString(pwd)
+		},
+	}
+}
+
 func UniqueList[T string | int]() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -391,11 +490,11 @@ func NotAfter(dt time.Time) RuleFunc {
 	}
 }
 
-func MaxTimeRange(dt time.Time, maxDays int) RuleFunc {
+func MaxDaysRange(dt time.Time, maxDays int) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
 			MessageFunc: func(rs *RuleSet) string {
-				return TimeRangeTooLongMsg
+				return fmt.Sprintf("Período não pode ser maior que %d dias", maxDays)
 			},
 			ValidateFunc: func(rs *RuleSet) bool {
 				switch val := rs.FieldValue.(type) {

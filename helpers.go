@@ -24,6 +24,8 @@ func HasValue(val any) bool {
 		return val != 0
 	case float64:
 		return val != 0
+	case float32:
+		return val != 0
 	case time.Time:
 		return !val.IsZero()
 	}
