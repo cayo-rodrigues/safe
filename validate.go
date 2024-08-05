@@ -1,5 +1,10 @@
 package safe
 
+import (
+	"fmt"
+	"strings"
+)
+
 // A slice of fields to be validated.
 // Each Field has a name, a value and a set of rules.
 //
@@ -20,16 +25,36 @@ package safe
 type Fields []*Field
 
 // An individual Field to be validated.
-// 
+//
 // It is highly advisable to use safe.Fields instead, since safe.Validate expects safe.Fields as argument.
 type Field struct {
 	// This is the name used as a key in the ErrorMessages map when the field is not valid
 	Name  string
 	Value any
-	Rules []*RuleSet
+	Rules FieldRules
 }
 
-// safe.Validate returns (safe.ErrorMessages, bool). 
+func (f *Field) String() string {
+	return fmt.Sprintf("Name: %s. Value: %v. Rules: %s", f.Name, f.Value, f.Rules)
+}
+
+type FieldRules []*RuleSet
+
+func (r FieldRules) String() string {
+	ruleNames := &strings.Builder{}
+	for i, rule := range r {
+		ruleNames.WriteString(rule.String())
+
+		isLastIteration := i == len(r)-1
+		if !isLastIteration {
+			ruleNames.WriteString(", ")
+		}
+	}
+
+	return ruleNames.String()
+}
+
+// safe.Validate returns (safe.ErrorMessages, bool).
 //
 // safe.ErrorMessages is a map of field names, each associated with a message.
 //
@@ -39,7 +64,7 @@ type Field struct {
 //		{...}
 //	}
 //	errors, ok := Validate(fields)
-//	
+//
 //	if !ok {
 //		fmt.Println("why is username not valid?", errors["Username"])
 //		fmt.Println("why is email not valid?", errors["Email"])

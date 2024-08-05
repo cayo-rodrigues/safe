@@ -15,6 +15,7 @@ import (
 //
 // Instead, it is preffered to use safe.RuleFuncs (which is simply a func that returns *safe.RuleSet), like the ones exposed by this library.
 type RuleSet struct {
+	RuleName     string
 	FieldValue   any
 	MessageFunc  func(*RuleSet) string
 	ValidateFunc func(*RuleSet) bool
@@ -41,14 +42,19 @@ func (rs *RuleSet) WithMessage(msg string) RuleFunc {
 	}
 }
 
+func (rs *RuleSet) String() string {
+	return rs.RuleName
+}
+
+
 // You can make your own RuleFuncs.
 //
 // Look at the source code of safe.Required, safe.Email, safe.Max or safe.OneOf. It's not so complicated.
 type RuleFunc func() *RuleSet
 
 // Calls each of the provided RuleFuncs and returns the resulting RuleSets.
-func Rules(ruleFuncs ...RuleFunc) []*RuleSet {
-	ruleSets := make([]*RuleSet, len(ruleFuncs))
+func Rules(ruleFuncs ...RuleFunc) FieldRules {
+	ruleSets := make(FieldRules, len(ruleFuncs))
 	for i := 0; i < len(ruleSets); i++ {
 		ruleSets[i] = ruleFuncs[i]()
 	}
@@ -84,6 +90,7 @@ func Rules(ruleFuncs ...RuleFunc) []*RuleSet {
 // To validate boolean fields more specificaly, use safe.True and safe.False.
 func Required() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.Required",
 		MessageFunc: func(rs *RuleSet) string {
 			return MandatoryFieldMsg
 		},
@@ -96,6 +103,7 @@ func Required() *RuleSet {
 // The field must be a bool with value of true
 func True() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.True",
 		MessageFunc: func(rs *RuleSet) string {
 			return MandatoryFieldMsg
 		},
@@ -112,6 +120,7 @@ func True() *RuleSet {
 // The field must be a bool with value of false
 func False() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.False",
 		MessageFunc: func(rs *RuleSet) string {
 			return MandatoryFieldMsg
 		},
@@ -128,6 +137,7 @@ func False() *RuleSet {
 // The field must be a string with a valid email format
 func Email() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.Email",
 		MessageFunc: func(rs *RuleSet) string {
 			return InvalidFormatMsg
 		},
@@ -149,6 +159,7 @@ func Email() *RuleSet {
 // The field must be a string with a valid phone format
 func Phone() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.Phone",
 		MessageFunc: func(rs *RuleSet) string {
 			return InvalidFormatMsg
 		},
@@ -170,6 +181,7 @@ func Phone() *RuleSet {
 // The field must be a string with a valid cpf format
 func Cpf() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.Cpf",
 		MessageFunc: func(rs *RuleSet) string {
 			return InvalidFormatMsg
 		},
@@ -191,6 +203,7 @@ func Cpf() *RuleSet {
 // The field must be a string with a valid cnpj format
 func Cnpj() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.Cnpj",
 		MessageFunc: func(rs *RuleSet) string {
 			return InvalidFormatMsg
 		},
@@ -212,6 +225,7 @@ func Cnpj() *RuleSet {
 // The field must be a string with a valid cpf or cnpj format
 func CpfCnpj() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.CpfCnpj",
 		MessageFunc: func(rs *RuleSet) string {
 			return InvalidFormatMsg
 		},
@@ -233,6 +247,7 @@ func CpfCnpj() *RuleSet {
 // The field must be a string with a valid cep format
 func CEP() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.CEP",
 		MessageFunc: func(rs *RuleSet) string {
 			return InvalidFormatMsg
 		},
@@ -253,9 +268,10 @@ func CEP() *RuleSet {
 
 // The field must be a string with a strong password pattern.
 //
-// This means 8-20 characters, both lowercase and uppercase letters, numbers and special characters.
+// This means 8+ characters, with lowercase and uppercase letters, numbers and special characters.
 func StrongPassword() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.StrongPassword",
 		MessageFunc: func(rs *RuleSet) string {
 			return ""
 		},
@@ -269,7 +285,7 @@ func StrongPassword() *RuleSet {
 				return true
 			}
 
-			return StrongPasswordRegex.MatchString(pwd)
+			return IsStrongPassword(pwd)
 		},
 	}
 }
@@ -277,6 +293,7 @@ func StrongPassword() *RuleSet {
 // The field must be a string with a valid format for a pix key.
 func Pix() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.Pix",
 		MessageFunc: func(rs *RuleSet) string {
 			return ""
 		},
@@ -298,6 +315,7 @@ func Pix() *RuleSet {
 // The field must be a string with a valid format for a random generated pix key.
 func RandomPix() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.RandomPix",
 		MessageFunc: func(rs *RuleSet) string {
 			return ""
 		},
@@ -319,6 +337,7 @@ func RandomPix() *RuleSet {
 // The field must be a string with a valid format for a uuid.
 func UUID() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.UUID",
 		MessageFunc: func(rs *RuleSet) string {
 			return ""
 		},
@@ -355,6 +374,7 @@ func UUID() *RuleSet {
 //	}
 func UniqueList[T string | int | float64 | float32]() *RuleSet {
 	return &RuleSet{
+		RuleName: "safe.UniqueList",
 		MessageFunc: func(rs *RuleSet) string {
 			return UniqueListMsg
 		},
@@ -377,6 +397,7 @@ func UniqueList[T string | int | float64 | float32]() *RuleSet {
 func Match(regexes ...*regexp.Regexp) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.Match",
 			MessageFunc: func(rs *RuleSet) string {
 				return InvalidFormatMsg
 			},
@@ -407,6 +428,7 @@ func Match(regexes ...*regexp.Regexp) RuleFunc {
 func MatchList(regexes ...*regexp.Regexp) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.MatchList",
 			MessageFunc: func(rs *RuleSet) string {
 				return InvalidFormatMsg
 			},
@@ -447,6 +469,7 @@ func MatchList(regexes ...*regexp.Regexp) RuleFunc {
 func Min(minValue int) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.Min",
 			MessageFunc: func(rs *RuleSet) string {
 				switch rs.FieldValue.(type) {
 				case int, float32, float64:
@@ -484,6 +507,7 @@ func Min(minValue int) RuleFunc {
 func Max(maxValue int) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.Max",
 			MessageFunc: func(rs *RuleSet) string {
 				switch rs.FieldValue.(type) {
 				case int, float32, float64:
@@ -533,6 +557,7 @@ func Max(maxValue int) RuleFunc {
 func OneOf[T string | int | float64 | float32](vals []T) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.OneOf",
 			MessageFunc: func(rs *RuleSet) string {
 				return UnacceptableValueMsg
 			},
@@ -552,6 +577,7 @@ func OneOf[T string | int | float64 | float32](vals []T) RuleFunc {
 func NotOneOf[T string | int | float64 | float32](vals []T) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.NotOneOf",
 			MessageFunc: func(rs *RuleSet) string {
 				return UnacceptableValueMsg
 			},
@@ -591,6 +617,7 @@ func NotOneOf[T string | int | float64 | float32](vals []T) RuleFunc {
 func RequiredUnless(vals ...any) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.RequiredUnless",
 			MessageFunc: func(rs *RuleSet) string {
 				return MandatoryFieldMsg
 			},
@@ -613,6 +640,7 @@ func RequiredUnless(vals ...any) RuleFunc {
 func NotAfter(dt time.Time) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.NotAfter",
 			MessageFunc: func(rs *RuleSet) string {
 				return IlogicalDatesMsg
 			},
@@ -632,6 +660,7 @@ func NotAfter(dt time.Time) RuleFunc {
 func After(dt time.Time) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.After",
 			MessageFunc: func(rs *RuleSet) string {
 				return IlogicalDatesMsg
 			},
@@ -651,6 +680,7 @@ func After(dt time.Time) RuleFunc {
 func NotBefore(dt time.Time) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.NotBefore",
 			MessageFunc: func(rs *RuleSet) string {
 				return IlogicalDatesMsg
 			},
@@ -670,6 +700,7 @@ func NotBefore(dt time.Time) RuleFunc {
 func Before(dt time.Time) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.Before",
 			MessageFunc: func(rs *RuleSet) string {
 				return IlogicalDatesMsg
 			},
@@ -691,6 +722,7 @@ func Before(dt time.Time) RuleFunc {
 func MaxDaysRange(dt time.Time, maxDays int) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
+			RuleName: "safe.MaxDaysRange",
 			MessageFunc: func(rs *RuleSet) string {
 				return fmt.Sprintf("Período não pode ser maior que %d dias", maxDays)
 			},

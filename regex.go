@@ -20,9 +20,6 @@ var CepRegex = regexp.MustCompile(`(^\d{5})\-?(\d{3}$)`)
 // numbers or "S/N", "s/n", "S/n", "s/N"
 var AddressNumberRegex = regexp.MustCompile(`^(?:s\/n|S\/n|S\/N|s\/N)|^(\d)*$`)
 
-// 8-20 characters, both lowercase and uppercase letters, numbers and special characters
-var StrongPasswordRegex = regexp.MustCompile(`^(?=.*[A-Z])(?=.*[a-z])(?=.*[\d])(?=.*[@#$%&*!-+&*]).{8,20}$`)
-
 var UUIDRegex = regexp.MustCompile(`(^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-4[a-fA-F0-9]{3}-[8|9|aA|bB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$)`)
 
 var PixRegex = regexp.MustCompile(`([0-9]{14})(br.gov.bcb.(|-)pix).*(6304)([0-9a-zA-Z]{4})`)

@@ -1,6 +1,7 @@
 package safe
 
 import (
+	"regexp"
 	"time"
 	"unicode/utf8"
 )
@@ -71,4 +72,20 @@ func AllUnique[T comparable](vals []T) bool {
 	}
 
 	return true
+}
+
+// A helper function to determine if a password is considered strong.
+//
+// This means 8+ characters, with lowercase and uppercase letters, numbers and special characters.
+func IsStrongPassword(password string) bool {
+	if utf8.RuneCountInString(password) < 8 {
+		return false
+	}
+
+	hasUppercase := regexp.MustCompile(`[A-Z]`).MatchString
+	hasLowercase := regexp.MustCompile(`[a-z]`).MatchString
+	hasDigit := regexp.MustCompile(`[\d]`).MatchString
+	hasSpecial := regexp.MustCompile(`[@#$%&*!-+&*]`).MatchString
+
+	return hasUppercase(password) && hasLowercase(password) && hasDigit(password) && hasSpecial(password)
 }
