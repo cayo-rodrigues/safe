@@ -93,6 +93,7 @@ func Required() *RuleSet {
 	}
 }
 
+// The field must be a bool with value of true
 func True() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -108,6 +109,7 @@ func True() *RuleSet {
 	}
 }
 
+// The field must be a bool with value of false
 func False() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -123,6 +125,7 @@ func False() *RuleSet {
 	}
 }
 
+// The field must be a string with a valid email format
 func Email() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -143,6 +146,7 @@ func Email() *RuleSet {
 	}
 }
 
+// The field must be a string with a valid phone format
 func Phone() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -163,6 +167,7 @@ func Phone() *RuleSet {
 	}
 }
 
+// The field must be a string with a valid cpf format
 func Cpf() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -183,6 +188,7 @@ func Cpf() *RuleSet {
 	}
 }
 
+// The field must be a string with a valid cnpj format
 func Cnpj() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -203,6 +209,7 @@ func Cnpj() *RuleSet {
 	}
 }
 
+// The field must be a string with a valid cpf or cnpj format
 func CpfCnpj() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -223,6 +230,7 @@ func CpfCnpj() *RuleSet {
 	}
 }
 
+// The field must be a string with a valid cep format
 func CEP() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -243,6 +251,9 @@ func CEP() *RuleSet {
 	}
 }
 
+// The field must be a string with a strong password pattern.
+//
+// This means 8-20 characters, both lowercase and uppercase letters, numbers and special characters.
 func StrongPassword() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
@@ -263,7 +274,86 @@ func StrongPassword() *RuleSet {
 	}
 }
 
-func UniqueList[T string | int]() *RuleSet {
+// The field must be a string with a valid format for a pix key.
+func Pix() *RuleSet {
+	return &RuleSet{
+		MessageFunc: func(rs *RuleSet) string {
+			return ""
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			pix, ok := rs.FieldValue.(string)
+			if !ok {
+				return false
+			}
+
+			if pix == "" {
+				return true
+			}
+
+			return PixRegex.MatchString(pix)
+		},
+	}
+}
+
+// The field must be a string with a valid format for a random generated pix key.
+func RandomPix() *RuleSet {
+	return &RuleSet{
+		MessageFunc: func(rs *RuleSet) string {
+			return ""
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			pix, ok := rs.FieldValue.(string)
+			if !ok {
+				return false
+			}
+
+			if pix == "" {
+				return true
+			}
+
+			return RandomPixRegex.MatchString(pix)
+		},
+	}
+}
+
+// The field must be a string with a valid format for a uuid.
+func UUID() *RuleSet {
+	return &RuleSet{
+		MessageFunc: func(rs *RuleSet) string {
+			return ""
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			uuid, ok := rs.FieldValue.(string)
+			if !ok {
+				return false
+			}
+
+			if uuid == "" {
+				return true
+			}
+
+			return UUIDRegex.MatchString(uuid)
+		},
+	}
+}
+
+// The field must be a slice of string, int, float64 or float32.
+// All values in the list should be unique.
+//
+// Must provide type inference.
+//
+// Example usage:
+//
+//	someList := [6]string{"q", "w", "e", "q", "t", "y"}
+//
+//	fields := safe.Fields{
+//		{
+//			Name:  "fieldName",
+//			Value: someList,
+//			Rules: safe.Rules(safe.Required, safe.UniqueList[string]),
+//		},
+//	}
+func UniqueList[T string | int | float64 | float32]() *RuleSet {
 	return &RuleSet{
 		MessageFunc: func(rs *RuleSet) string {
 			return UniqueListMsg
@@ -278,19 +368,12 @@ func UniqueList[T string | int]() *RuleSet {
 				return true
 			}
 
-			var previousVal T
-			for _, val := range vals {
-				if val == previousVal {
-					return false
-				}
-				previousVal = val
-			}
-
-			return true
+			return AllUnique(vals)
 		},
 	}
 }
 
+// The field must be a string that matches all the given regexes.
 func Match(regexes ...*regexp.Regexp) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
@@ -320,6 +403,7 @@ func Match(regexes ...*regexp.Regexp) RuleFunc {
 	}
 }
 
+// The field must be a slice of string, in which all strings match all the given regexes.
 func MatchList(regexes ...*regexp.Regexp) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
@@ -355,6 +439,11 @@ func MatchList(regexes ...*regexp.Regexp) RuleFunc {
 	}
 }
 
+// The field must be an int, float64, float32 or string.
+//
+// In case it is a numeric value, it must not be less then minValue.
+//
+// As for strings, they must not have less then minValue number of characters.
 func Min(minValue int) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
@@ -387,6 +476,11 @@ func Min(minValue int) RuleFunc {
 	}
 }
 
+// The field must be an int, float64, float32 or string.
+//
+// In case it is a numeric value, it must not greater then maxValue.
+//
+// As for strings, they must not have more then maxValue number of characters.
 func Max(maxValue int) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
@@ -415,6 +509,27 @@ func Max(maxValue int) RuleFunc {
 	}
 }
 
+// The field must be a string, int, float64 or float32.
+//
+// The value of the field should be equal to at least one of the provided values.
+//
+// Example usage:
+//
+//	EntityUserTypes := [6]string{"q", "w", "e", "r", "t", "y"}
+//	e := &Entity{UserType: "default", SomeOtherOptionField: 4}
+//
+//	fields := safe.Fields{
+//		{
+//			Name:  "UserType",
+//			Value: e.UserType,
+//			Rules: safe.Rules(safe.Required, safe.OneOf(EntityUserTypes[:])),
+//		},
+//		{
+//			Name:  "SomeOtherOptionField",
+//			Value: e.SomeOtherOptionField,
+//			Rules: safe.Rules(safe.Required, safe.OneOf([]int{1, 2, 3}),
+//		},
+//	}
 func OneOf[T string | int | float64 | float32](vals []T) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
@@ -433,6 +548,7 @@ func OneOf[T string | int | float64 | float32](vals []T) RuleFunc {
 	}
 }
 
+// Exactly the opposite of safe.OneOf.
 func NotOneOf[T string | int | float64 | float32](vals []T) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
@@ -451,6 +567,27 @@ func NotOneOf[T string | int | float64 | float32](vals []T) RuleFunc {
 	}
 }
 
+// The field is required, just like safe.Required.
+//
+// However, if any of the provided vals are valid (meaning, if at least of one them have no zero value),
+// then pass.
+//
+// Example usage:
+//
+//	fields := safe.Fields{
+//		{
+//			Name: "Email",
+//			Value: user.Email,
+//			Rules: safe.Rules(safe.Email, safe.Max(128), safe.RequiredUnless(safe.Username)),
+//		},
+//		{
+//			Name: "Username",
+//			Value: user.Username,
+//			Rules: safe.Rules(safe.Required, safe.Max(128), safe.Min(3)),
+//		},
+//	}
+//
+// In the example above, email is required, unless username is provided.
 func RequiredUnless(vals ...any) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
@@ -472,6 +609,7 @@ func RequiredUnless(vals ...any) RuleFunc {
 	}
 }
 
+// The field must be of type time.Time, and it's value should not be after the provided datetime.
 func NotAfter(dt time.Time) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
@@ -490,6 +628,66 @@ func NotAfter(dt time.Time) RuleFunc {
 	}
 }
 
+// The field must be of type time.Time, and it's value should be after the provided datetime.
+func After(dt time.Time) RuleFunc {
+	return func() *RuleSet {
+		return &RuleSet{
+			MessageFunc: func(rs *RuleSet) string {
+				return IlogicalDatesMsg
+			},
+			ValidateFunc: func(rs *RuleSet) bool {
+				switch val := rs.FieldValue.(type) {
+				case time.Time:
+					return val.After(dt)
+				}
+
+				return false
+			},
+		}
+	}
+}
+
+// The field must be of type time.Time, and it's value should not be before the provided datetime.
+func NotBefore(dt time.Time) RuleFunc {
+	return func() *RuleSet {
+		return &RuleSet{
+			MessageFunc: func(rs *RuleSet) string {
+				return IlogicalDatesMsg
+			},
+			ValidateFunc: func(rs *RuleSet) bool {
+				switch val := rs.FieldValue.(type) {
+				case time.Time:
+					return !val.Before(dt)
+				}
+
+				return false
+			},
+		}
+	}
+}
+
+// The field must be of type time.Time, and it's value should be before the provided datetime.
+func Before(dt time.Time) RuleFunc {
+	return func() *RuleSet {
+		return &RuleSet{
+			MessageFunc: func(rs *RuleSet) string {
+				return IlogicalDatesMsg
+			},
+			ValidateFunc: func(rs *RuleSet) bool {
+				switch val := rs.FieldValue.(type) {
+				case time.Time:
+					return val.Before(dt)
+				}
+
+				return false
+			},
+		}
+	}
+}
+
+// The field must be of type time.Time.
+//
+// The days range between the value of the field and the provided datetime should not be grater than maxDays.
 func MaxDaysRange(dt time.Time, maxDays int) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
