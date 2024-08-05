@@ -356,7 +356,7 @@ func UUID() *RuleSet {
 	}
 }
 
-// The field must be a slice of string, int, float64 or float32.
+// The field must be a slice of values, each of them implementing the comparable interface.
 // All values in the list should be unique.
 //
 // Must provide type inference.
@@ -372,7 +372,12 @@ func UUID() *RuleSet {
 //			Rules: safe.Rules(safe.Required, safe.UniqueList[string]),
 //		},
 //	}
-func UniqueList[T string | int | float64 | float32]() *RuleSet {
+//
+// IMPORTANT!
+//
+// Please note that if you pass "any" as type parameter to safe.UniqueList, it will
+// work **only** with explicit []any types. If you pass another type, there will be runtime errors.
+func UniqueList[T comparable]() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.UniqueList",
 		MessageFunc: func(rs *RuleSet) string {

@@ -186,6 +186,150 @@ func TestStrongPasswordRule(t *testing.T) {
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
+func TestPixRule(t *testing.T) {
+	t.SkipNow()
+
+	fieldData := &safe.Field{
+		Name:  "pix",
+		Rules: safe.Rules(safe.Pix),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: " "},
+		{Val: "123"},
+		{Val: "aaa"},
+	}
+	okValues := []any{
+		"$s3NH@!X",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.WeakPasswordMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestRandomPixRule(t *testing.T) {
+	t.SkipNow()
+
+	fieldData := &safe.Field{
+		Name:  "pix",
+		Rules: safe.Rules(safe.RandomPix),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: " "},
+		{Val: "123"},
+		{Val: "aaa"},
+	}
+	okValues := []any{
+		"$s3NH@!X",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.WeakPasswordMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestUUIDRule(t *testing.T) {
+	t.SkipNow()
+
+	fieldData := &safe.Field{
+		Name:  "pix",
+		Rules: safe.Rules(safe.RandomPix),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: " "},
+		{Val: "123"},
+		{Val: "aaa"},
+	}
+	okValues := []any{
+		"$s3NH@!X",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.WeakPasswordMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestUniqueListRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "unique list",
+		Rules: safe.Rules(safe.UniqueList[any]),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: []any{"aaa", "b", "aaa"}},
+		{Val: []any{1, 2, 3, 4, 4}},
+		{Val: []any{1, 2.5, 3.14, 3.14}},
+		{Val: []any{"1", 1, "one", 1}},
+	}
+	okValues := []any{
+		[]any{"$s3NH@!X"},
+		[]any{"$s3NH@!X", "unique string", "another unique string"},
+		[]any{1, 2, 3},
+		[]any{1, 2, 3.333},
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UniqueListMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestMatchRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "match",
+		Rules: safe.Rules(safe.Match(safe.WhateverRegex)),
+	}
+
+	invalidValues := []*InvalidValue{}
+	okValues := []any{"literaly anything"}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	fieldData.Rules = safe.Rules(safe.Match(safe.AddressNumberRegex))
+
+	invalidValues = []*InvalidValue{
+		{Val: "abc"},
+		{Val: "1 1"},
+		{Val: "321 Fundos"},
+	}
+	okValues = []any{
+		"231",
+		"s/n",
+		"S/N",
+		"s/N",
+		"S/n",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestMatchListRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "match list",
+		Rules: safe.Rules(safe.MatchList(safe.WhateverRegex)),
+	}
+
+	invalidValues := []*InvalidValue{}
+	okValues := []any{
+		[]string{"literaly anything", "whatever"},
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	fieldData.Rules = safe.Rules(safe.MatchList(safe.AddressNumberRegex))
+
+	invalidValues = []*InvalidValue{
+		{Val: []string{"abc", "1 1", "321 Fundos"}},
+	}
+	okValues = []any{
+		[]string{"231", "s/n", "S/N", "s/N", "S/n"},
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
 func TestWithMessage(t *testing.T) {
 	customErrMsg := "custom err msg"
 	fieldData := &safe.Field{
