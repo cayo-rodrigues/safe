@@ -273,7 +273,7 @@ func StrongPassword() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.StrongPassword",
 		MessageFunc: func(rs *RuleSet) string {
-			return ""
+			return WeakPasswordMsg
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			pwd, ok := rs.FieldValue.(string)

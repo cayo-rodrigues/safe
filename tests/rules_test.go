@@ -13,13 +13,13 @@ func TestRequiredRule(t *testing.T) {
 	}
 
 	invalidValues := []*InvalidValue{
-		{Val: "", ExpectedErrMsg: safe.MandatoryFieldMsg},
-		{Val: 0, ExpectedErrMsg: safe.MandatoryFieldMsg},
-		{Val: nil, ExpectedErrMsg: safe.MandatoryFieldMsg},
+		{Val: ""},
+		{Val: 0},
+		{Val: nil},
 	}
 	okValues := []any{"a", -1}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MandatoryFieldMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -30,16 +30,16 @@ func TestEmailRule(t *testing.T) {
 	}
 
 	invalidValues := []*InvalidValue{
-		{Val: " ", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "qqq", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "qqq@", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "qqq@aaa", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "qqq@aaa.", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "qqq@aaa. zzz", ExpectedErrMsg: safe.InvalidFormatMsg},
+		{Val: " "},
+		{Val: "qqq"},
+		{Val: "qqq@"},
+		{Val: "qqq@aaa"},
+		{Val: "qqq@aaa."},
+		{Val: "qqq@aaa. zzz"},
 	}
 	okValues := []any{"qqq@aaa.zzz"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -50,9 +50,9 @@ func TestPhoneRule(t *testing.T) {
 	}
 
 	invalidValues := []*InvalidValue{
-		{Val: " ", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "123", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "999445697", ExpectedErrMsg: safe.InvalidFormatMsg},
+		{Val: " "},
+		{Val: "123"},
+		{Val: "999445697"},
 	}
 	okValues := []any{
 		"(35) 99944-5697",
@@ -62,7 +62,7 @@ func TestPhoneRule(t *testing.T) {
 		"+5535999445697",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -73,17 +73,17 @@ func TestCpfRule(t *testing.T) {
 	}
 
 	invalidValues := []*InvalidValue{
-		{Val: " ", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "123", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "139503176", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "139.503.176.27", ExpectedErrMsg: safe.InvalidFormatMsg},
+		{Val: " "},
+		{Val: "123"},
+		{Val: "139503176"},
+		{Val: "139.503.176.27"},
 	}
 	okValues := []any{
 		"13950317627",
 		"139.503.176-27",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -94,17 +94,17 @@ func TestCnpjRule(t *testing.T) {
 	}
 
 	invalidValues := []*InvalidValue{
-		{Val: " ", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "123", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "445040440001", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "44.504.044/0001-aa", ExpectedErrMsg: safe.InvalidFormatMsg},
+		{Val: " "},
+		{Val: "123"},
+		{Val: "445040440001"},
+		{Val: "44.504.044/0001-aa"},
 	}
 	okValues := []any{
 		"44.504.044/0001-24",
 		"44504044000124",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -115,13 +115,13 @@ func TestCpfCnpjRule(t *testing.T) {
 	}
 
 	invalidValues := []*InvalidValue{
-		{Val: " ", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "123", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "139503176", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "139.503.176.27", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "44504044000127272", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "445040440001aa", ExpectedErrMsg: safe.InvalidFormatMsg},
-		{Val: "44.504.044/0001-aa", ExpectedErrMsg: safe.InvalidFormatMsg},
+		{Val: " "},
+		{Val: "123"},
+		{Val: "139503176"},
+		{Val: "139.503.176.27"},
+		{Val: "44504044000127272"},
+		{Val: "445040440001aa"},
+		{Val: "44.504.044/0001-aa"},
 	}
 	okValues := []any{
 		"44.504.044/0001-24",
@@ -130,7 +130,59 @@ func TestCpfCnpjRule(t *testing.T) {
 		"139.503.176-27",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestCEPRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "cep",
+		Rules: safe.Rules(safe.CEP),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: " "},
+		{Val: "123"},
+		{Val: "3661000"},
+		{Val: "3750800"},
+		{Val: "37508 000"},
+	}
+	okValues := []any{
+		"36610000",
+		"37508000",
+		"36610-000",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestStrongPasswordRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "strong_password",
+		Rules: safe.Rules(safe.StrongPassword),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: " "},
+		{Val: "123"},
+		{Val: "aaa"},
+		{Val: "AAA"},
+		{Val: "1q2w3e"},
+		{Val: "password"},
+		{Val: "AAAqqq123"},
+		{Val: "qAz QwE 1Z2b9j"},
+		{Val: "$3nh4fort3_"},
+		{Val: "$3NH4FORT3_"},
+		{Val: "$_!@%&*"},
+		{Val: "$3nH4!!"},
+	}
+	okValues := []any{
+		"$s3NH@!X",
+		"$S3nh4Mu1iT0__F)rt3!",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.WeakPasswordMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 

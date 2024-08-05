@@ -30,7 +30,12 @@ func testFieldWithOkValues(fieldData *safe.Field, validValues []any, t *testing.
 	}
 }
 
-func testFieldWithInvalidValues(fieldData *safe.Field, invalidValues []*InvalidValue, t *testing.T) {
+func testFieldWithInvalidValues(fieldData *safe.Field, invalidValues []*InvalidValue, t *testing.T, singleErrMsg ...string) {
+	sharedErrMsg := ""
+	if len(singleErrMsg) > 0 {
+		sharedErrMsg = singleErrMsg[0]
+	}
+
 	for _, sampleValue := range invalidValues {
 		fieldData.Value = sampleValue.Val
 
@@ -47,8 +52,12 @@ func testFieldWithInvalidValues(fieldData *safe.Field, invalidValues []*InvalidV
 
 		}
 
+		if sharedErrMsg != "" {
+			sampleValue.ExpectedErrMsg = sharedErrMsg
+		}
+
 		if errMsg != sampleValue.ExpectedErrMsg {
-			t.Errorf("error message is wrong. %s.\nExpected: %v\nGot: %v", fieldData, sampleValue.ExpectedErrMsg, errMsg)
+			t.Errorf("error message is wrong. %s.\nExpected: %v\nGot: %v.", fieldData, sampleValue.ExpectedErrMsg, errMsg)
 
 		}
 	}

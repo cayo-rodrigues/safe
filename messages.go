@@ -7,4 +7,5 @@ const (
 	IlogicalDatesMsg     = "Data inicial deve ser anterior à final"
 	UnacceptableValueMsg = "Valor inaceitável"
 	UniqueListMsg        = "Valores na lista devem ser únicos"
+	WeakPasswordMsg      = "Senha deve ter 8+ caracteres, letras minúsculas e maiúsculas, números e símbolos"
 )
