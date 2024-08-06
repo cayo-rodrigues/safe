@@ -154,7 +154,10 @@ func Email() *RuleSet {
 	}
 }
 
-// The field must be a string with a valid phone format
+// The field must be a string with a valid phone format.
+//
+// It may or may not include symbols (like +, - and ())
+// or whitespaces
 func Phone() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Phone",
@@ -177,6 +180,8 @@ func Phone() *RuleSet {
 }
 
 // The field must be a string with a valid cpf format
+//
+// It may or may not include symbols
 func Cpf() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Cpf",
@@ -199,6 +204,8 @@ func Cpf() *RuleSet {
 }
 
 // The field must be a string with a valid cnpj format
+//
+// It may or may not include symbols
 func Cnpj() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Cnpj",
@@ -221,6 +228,8 @@ func Cnpj() *RuleSet {
 }
 
 // The field must be a string with a valid cpf or cnpj format
+//
+// It may or may not include symbols
 func CpfCnpj() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.CpfCnpj",
@@ -288,56 +297,12 @@ func StrongPassword() *RuleSet {
 	}
 }
 
-// The field must be a string with a valid format for a pix key.
-func Pix() *RuleSet {
-	return &RuleSet{
-		RuleName: "safe.Pix",
-		MessageFunc: func(rs *RuleSet) string {
-			return ""
-		},
-		ValidateFunc: func(rs *RuleSet) bool {
-			pix, ok := rs.FieldValue.(string)
-			if !ok {
-				return false
-			}
-
-			if pix == "" {
-				return true
-			}
-
-			return PixRegex.MatchString(pix)
-		},
-	}
-}
-
-// The field must be a string with a valid format for a random generated pix key.
-func RandomPix() *RuleSet {
-	return &RuleSet{
-		RuleName: "safe.RandomPix",
-		MessageFunc: func(rs *RuleSet) string {
-			return ""
-		},
-		ValidateFunc: func(rs *RuleSet) bool {
-			pix, ok := rs.FieldValue.(string)
-			if !ok {
-				return false
-			}
-
-			if pix == "" {
-				return true
-			}
-
-			return RandomPixRegex.MatchString(pix)
-		},
-	}
-}
-
 // The field must be a string with a valid format for a uuid.
 func UUID() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.UUID",
 		MessageFunc: func(rs *RuleSet) string {
-			return ""
+			return InvalidFormatMsg
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			uuid, ok := rs.FieldValue.(string)

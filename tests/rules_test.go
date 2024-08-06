@@ -188,66 +188,30 @@ func TestStrongPasswordRule(t *testing.T) {
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
-func TestPixRule(t *testing.T) {
-	t.SkipNow()
-
-	fieldData := &safe.Field{
-		Name:  "pix",
-		Rules: safe.Rules(safe.Pix),
-	}
-
-	invalidValues := []*InvalidValue{
-		{Val: " "},
-		{Val: "123"},
-		{Val: "aaa"},
-	}
-	okValues := []any{
-		"$s3NH@!X",
-	}
-
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.WeakPasswordMsg)
-	testFieldWithOkValues(fieldData, okValues, t)
-}
-
-func TestRandomPixRule(t *testing.T) {
-	t.SkipNow()
-
-	fieldData := &safe.Field{
-		Name:  "pix",
-		Rules: safe.Rules(safe.RandomPix),
-	}
-
-	invalidValues := []*InvalidValue{
-		{Val: " "},
-		{Val: "123"},
-		{Val: "aaa"},
-	}
-	okValues := []any{
-		"$s3NH@!X",
-	}
-
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.WeakPasswordMsg)
-	testFieldWithOkValues(fieldData, okValues, t)
-}
-
 func TestUUIDRule(t *testing.T) {
-	t.SkipNow()
-
 	fieldData := &safe.Field{
-		Name:  "pix",
-		Rules: safe.Rules(safe.RandomPix),
+		Name:  "uuid",
+		Rules: safe.Rules(safe.UUID),
 	}
 
 	invalidValues := []*InvalidValue{
 		{Val: " "},
 		{Val: "123"},
 		{Val: "aaa"},
+		{Val: 0},
+		{Val: "z52a3e80-9866-11eb-a8b3-0242ac130003"}, // look like v1
+		{Val: "g6c3f6e4-5e6a-4f84-89fa-b1231e8bb02b"}, // look like v4
+		{Val: "9b4e79a8-0a8d-5c11-83bc-04d2e569e60g"}, // look like v5
+		{Val: "018a3345-6bdf-7e47-8080-060d2f507b6z"}, // look like v7
 	}
 	okValues := []any{
-		"$s3NH@!X",
+		"a52a3e80-9866-11eb-a8b3-0242ac130003", // v1
+		"d6c3f6e4-5e6a-4f84-89fa-b1231e8bb02b", // v4
+		"9b4e79a8-0a8d-5c11-83bc-04d2e569e60b", // v5
+		"018a3345-6bdf-7e47-8080-060d2f507b6e", // v7
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.WeakPasswordMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
