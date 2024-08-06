@@ -1,7 +1,6 @@
 package safe
 
 import (
-	"fmt"
 	"regexp"
 	"time"
 	"unicode/utf8"
@@ -45,7 +44,6 @@ func (rs *RuleSet) WithMessage(msg string) RuleFunc {
 func (rs *RuleSet) String() string {
 	return rs.RuleName
 }
-
 
 // You can make your own RuleFuncs.
 //
@@ -478,9 +476,9 @@ func Min(minValue int) RuleFunc {
 			MessageFunc: func(rs *RuleSet) string {
 				switch rs.FieldValue.(type) {
 				case int, float32, float64:
-					return fmt.Sprintf("Valor mínimo: %d", minValue)
+					return MinValueMsg(minValue)
 				default:
-					return fmt.Sprintf("Mínimo de %d caracteres", minValue)
+					return MinCharsMsg(minValue)
 				}
 			},
 			ValidateFunc: func(rs *RuleSet) bool {
@@ -516,15 +514,19 @@ func Max(maxValue int) RuleFunc {
 			MessageFunc: func(rs *RuleSet) string {
 				switch rs.FieldValue.(type) {
 				case int, float32, float64:
-					return fmt.Sprintf("Valor máximo: %d", maxValue)
+					return MaxValueMsg(maxValue)
 				default:
-					return fmt.Sprintf("Máximo de %d caracteres", maxValue)
+					return MaxCharsMsg(maxValue)
 				}
 			},
 			ValidateFunc: func(rs *RuleSet) bool {
 				switch val := rs.FieldValue.(type) {
 				case int:
 					return val <= maxValue
+				case float64:
+					return val <= float64(maxValue)
+				case float32:
+					return val <= float32(maxValue)
 				case string:
 					if val == "" {
 						return true
@@ -538,7 +540,7 @@ func Max(maxValue int) RuleFunc {
 	}
 }
 
-// The field must be a string, int, float64 or float32.
+// The field value must implement the comparable interface.
 //
 // The value of the field should be equal to at least one of the provided values.
 //
@@ -559,7 +561,7 @@ func Max(maxValue int) RuleFunc {
 //			Rules: safe.Rules(safe.Required, safe.OneOf([]int{1, 2, 3}),
 //		},
 //	}
-func OneOf[T string | int | float64 | float32](vals []T) RuleFunc {
+func OneOf[T comparable](vals []T) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
 			RuleName: "safe.OneOf",
@@ -579,7 +581,7 @@ func OneOf[T string | int | float64 | float32](vals []T) RuleFunc {
 }
 
 // Exactly the opposite of safe.OneOf.
-func NotOneOf[T string | int | float64 | float32](vals []T) RuleFunc {
+func NotOneOf[T comparable](vals []T) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
 			RuleName: "safe.NotOneOf",
@@ -609,7 +611,7 @@ func NotOneOf[T string | int | float64 | float32](vals []T) RuleFunc {
 //		{
 //			Name: "Email",
 //			Value: user.Email,
-//			Rules: safe.Rules(safe.Email, safe.Max(128), safe.RequiredUnless(safe.Username)),
+//			Rules: safe.Rules(safe.Email, safe.Max(128), safe.RequiredUnless(user.Username)),
 //		},
 //		{
 //			Name: "Username",
@@ -641,26 +643,6 @@ func RequiredUnless(vals ...any) RuleFunc {
 	}
 }
 
-// The field must be of type time.Time, and it's value should not be after the provided datetime.
-func NotAfter(dt time.Time) RuleFunc {
-	return func() *RuleSet {
-		return &RuleSet{
-			RuleName: "safe.NotAfter",
-			MessageFunc: func(rs *RuleSet) string {
-				return IlogicalDatesMsg
-			},
-			ValidateFunc: func(rs *RuleSet) bool {
-				switch val := rs.FieldValue.(type) {
-				case time.Time:
-					return !val.After(dt)
-				}
-
-				return false
-			},
-		}
-	}
-}
-
 // The field must be of type time.Time, and it's value should be after the provided datetime.
 func After(dt time.Time) RuleFunc {
 	return func() *RuleSet {
@@ -681,18 +663,18 @@ func After(dt time.Time) RuleFunc {
 	}
 }
 
-// The field must be of type time.Time, and it's value should not be before the provided datetime.
-func NotBefore(dt time.Time) RuleFunc {
+// The field must be of type time.Time, and it's value should not be after the provided datetime.
+func NotAfter(dt time.Time) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
-			RuleName: "safe.NotBefore",
+			RuleName: "safe.NotAfter",
 			MessageFunc: func(rs *RuleSet) string {
 				return IlogicalDatesMsg
 			},
 			ValidateFunc: func(rs *RuleSet) bool {
 				switch val := rs.FieldValue.(type) {
 				case time.Time:
-					return !val.Before(dt)
+					return !val.After(dt)
 				}
 
 				return false
@@ -721,20 +703,40 @@ func Before(dt time.Time) RuleFunc {
 	}
 }
 
+// The field must be of type time.Time, and it's value should not be before the provided datetime.
+func NotBefore(dt time.Time) RuleFunc {
+	return func() *RuleSet {
+		return &RuleSet{
+			RuleName: "safe.NotBefore",
+			MessageFunc: func(rs *RuleSet) string {
+				return IlogicalDatesMsg
+			},
+			ValidateFunc: func(rs *RuleSet) bool {
+				switch val := rs.FieldValue.(type) {
+				case time.Time:
+					return !val.Before(dt)
+				}
+
+				return false
+			},
+		}
+	}
+}
+
 // The field must be of type time.Time.
 //
-// The days range between the value of the field and the provided datetime should not be grater than maxDays.
+// The days range between the value of the field and the provided datetime should not be greater than maxDays.
 func MaxDaysRange(dt time.Time, maxDays int) RuleFunc {
 	return func() *RuleSet {
 		return &RuleSet{
 			RuleName: "safe.MaxDaysRange",
 			MessageFunc: func(rs *RuleSet) string {
-				return fmt.Sprintf("Período não pode ser maior que %d dias", maxDays)
+				return MaxDaysRangeMsg(maxDays)
 			},
 			ValidateFunc: func(rs *RuleSet) bool {
 				switch val := rs.FieldValue.(type) {
 				case time.Time:
-					diffInDays := int(dt.Sub(val).Hours() / 24)
+					diffInDays := DaysDifference(dt, val)
 					return diffInDays <= maxDays
 				}
 

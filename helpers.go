@@ -52,7 +52,11 @@ func HasValue(val any) bool {
 		return val
 	case string:
 		return utf8.RuneCountInString(val) > 0
-	case int, float64, float32:
+	case int:
+		return val != 0
+	case float64:
+		return val != 0
+	case float32:
 		return val != 0
 	case time.Time:
 		return !val.IsZero()
@@ -88,4 +92,22 @@ func IsStrongPassword(password string) bool {
 	hasSpecial := regexp.MustCompile(`[@#$%&*!-+&*]`).MatchString
 
 	return hasUppercase(password) && hasLowercase(password) && hasDigit(password) && hasSpecial(password)
+}
+
+// A helper function to calculate the difference in days of two datetime values.
+//
+// Please note that this function will completely ignore the hours, minutes, seconds and so on.
+// It will purely considerer the days.
+//
+// The order of the arguments does not matter, and which one comes first or last in time does not matter as well.
+func DaysDifference(dt1, dt2 time.Time) int {
+	year1, month1, day1 := dt1.Date()
+	year2, month2, day2 := dt2.Date()
+	date1 := time.Date(year1, month1, day1, 0, 0, 0, 0, dt1.Location())
+	date2 := time.Date(year2, month2, day2, 0, 0, 0, 0, dt2.Location())
+	diff := date1.Sub(date2)
+	if diff < 0 {
+		diff = -diff
+	}
+	return int(diff.Hours() / 24)
 }

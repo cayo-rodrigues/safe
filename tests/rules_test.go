@@ -1,7 +1,9 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/cayo-rodrigues/safe"
 )
@@ -327,6 +329,315 @@ func TestMatchListRule(t *testing.T) {
 	}
 
 	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestMinRule(t *testing.T) {
+	minValue := 5
+
+	fieldData := &safe.Field{
+		Name:  "min",
+		Rules: safe.Rules(safe.Min(minValue)),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: 4},
+		{Val: 0},
+		{Val: -5},
+		{Val: -6},
+		{Val: 4.9999},
+	}
+	okValues := []any{5, 6}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MinValueMsg(minValue))
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	invalidValues = []*InvalidValue{
+		{Val: "1234"},
+		{Val: "1   "},
+		{Val: " "},
+		{Val: "abcq"},
+	}
+	okValues = []any{"pineapple", "apple", "abcdef"}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MinCharsMsg(minValue))
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestMaxRule(t *testing.T) {
+	maxValue := 1
+
+	fieldData := &safe.Field{
+		Name:  "max",
+		Rules: safe.Rules(safe.Max(maxValue)),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: 1.000001},
+		{Val: 1.1},
+		{Val: 100},
+	}
+	okValues := []any{0, 0.5, 0.999, -1, -100}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MaxValueMsg(maxValue))
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	invalidValues = []*InvalidValue{
+		{Val: "1234"},
+		{Val: "1   "},
+		{Val: "  "},
+		{Val: "ab"},
+	}
+	okValues = []any{"p", "a", "1", "", " "}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MaxCharsMsg(maxValue))
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestOneOfRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "one of",
+		Rules: safe.Rules(safe.OneOf([]any{"1", "2", "abc", 123, 99.9, "abc"})),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: "1.000001"},
+		{Val: 123.00001},
+		{Val: 100},
+		{Val: 99.99},
+		{Val: "1 "},
+		{Val: "ab"},
+		{Val: " abc"},
+		{Val: 99.8},
+	}
+	okValues := []any{"1", "abc", 99.9, 123}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestNotOneOfRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "no one of",
+		Rules: safe.Rules(safe.NotOneOf([]any{"1", "2", "abc", 123, 99.9, "abc"})),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: "1"},
+		{Val: "abc"},
+		{Val: 99.9},
+		{Val: 123},
+	}
+	okValues := []any{"1.000001", 123.00001, 100, 99.99, "1 ", "ab", " abc", 99.8}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestRequiredUnlessRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "required unless",
+		Rules: safe.Rules(safe.RequiredUnless(nil)),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: ""},
+		{Val: 0},
+		{Val: 0.000},
+		{Val: nil},
+		{Val: false},
+		{Val: time.Time{}},
+		{Val: struct{}{}},
+	}
+	okValues := []any{"anything non-zero value", 1, true, time.Now()}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MandatoryFieldMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	fieldData.Rules = safe.Rules(safe.RequiredUnless("", nil, 0, struct{}{}, 0.01))
+
+	okValues = []any{"", 0, " ", nil, 1000, "anything", time.Now(), time.Time{}}
+
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestAfterRule(t *testing.T) {
+	now := time.Now()
+
+	fieldData := &safe.Field{
+		Name:  "after",
+		Rules: safe.Rules(safe.After(now)),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: now},
+		{Val: now.Add(-time.Hour)},
+		{Val: now.Add(-time.Minute)},
+		{Val: now.Add(-time.Second)},
+		{Val: now.Add(-time.Millisecond)},
+		{Val: now.Add(-time.Microsecond)},
+	}
+	okValues := []any{
+		now.Add(time.Hour),
+		now.Add(time.Minute),
+		now.Add(time.Second),
+		now.Add(time.Millisecond),
+		now.Add(time.Microsecond),
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.IlogicalDatesMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestNotAfterRule(t *testing.T) {
+	now := time.Now()
+
+	fieldData := &safe.Field{
+		Name:  "not after",
+		Rules: safe.Rules(safe.NotAfter(now)),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: now.Add(time.Hour)},
+		{Val: now.Add(time.Minute)},
+		{Val: now.Add(time.Second)},
+		{Val: now.Add(time.Millisecond)},
+		{Val: now.Add(time.Microsecond)},
+	}
+	okValues := []any{
+		now,
+		now.Add(-time.Hour),
+		now.Add(-time.Minute),
+		now.Add(-time.Second),
+		now.Add(-time.Millisecond),
+		now.Add(-time.Microsecond),
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.IlogicalDatesMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestBeforeRule(t *testing.T) {
+	now := time.Now()
+
+	fieldData := &safe.Field{
+		Name:  "before",
+		Rules: safe.Rules(safe.Before(now)),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: now},
+		{Val: now.Add(time.Hour)},
+		{Val: now.Add(time.Minute)},
+		{Val: now.Add(time.Second)},
+		{Val: now.Add(time.Millisecond)},
+		{Val: now.Add(time.Microsecond)},
+	}
+	okValues := []any{
+		now.Add(-time.Hour),
+		now.Add(-time.Minute),
+		now.Add(-time.Second),
+		now.Add(-time.Millisecond),
+		now.Add(-time.Microsecond),
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.IlogicalDatesMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestNotBeforeRule(t *testing.T) {
+	now := time.Now()
+
+	fieldData := &safe.Field{
+		Name:  "not before",
+		Rules: safe.Rules(safe.NotBefore(now)),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: now.Add(-time.Hour)},
+		{Val: now.Add(-time.Minute)},
+		{Val: now.Add(-time.Second)},
+		{Val: now.Add(-time.Millisecond)},
+		{Val: now.Add(-time.Microsecond)},
+	}
+	okValues := []any{
+		now,
+		now.Add(time.Hour),
+		now.Add(time.Minute),
+		now.Add(time.Second),
+		now.Add(time.Millisecond),
+		now.Add(time.Microsecond),
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.IlogicalDatesMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestMaxDaysRangeRule(t *testing.T) {
+	now := time.Now()
+
+	oneDayAhead := now.Add(time.Hour * 24)
+	twoDaysAhead := now.Add(time.Hour * 24 * 2)
+	threeDaysAhead := now.Add(time.Hour * 24 * 3)
+	fourDaysAhead := now.Add(time.Hour * 24 * 4)
+
+	oneDayAgo := now.Add(-time.Hour * 24)
+	twoDaysAgo := now.Add(-time.Hour * 24 * 2)
+	threeDaysAgo := now.Add(-time.Hour * 24 * 3)
+	fourDaysAgo := now.Add(-time.Hour * 24 * 4)
+
+	almostTomorrowButStillToday := now.Add(time.Hour * time.Duration(23-now.Hour()))
+	almostTodayButStillYesterday := now.Add(-time.Hour * time.Duration(now.Hour()+1))
+
+	maxDaysRange := 3
+
+	msg := fmt.Sprintf("Período não pode ser maior que %d dias. Comparando com: %v", maxDaysRange, threeDaysAhead)
+
+	fieldData := &safe.Field{
+		Name:  "max days range",
+		Rules: safe.Rules(safe.MaxDaysRange(threeDaysAhead, maxDaysRange)().WithMessage(msg)),
+	}
+
+	invalidValues := []*InvalidValue{
+		{Val: oneDayAgo},
+		{Val: twoDaysAgo},
+		{Val: threeDaysAgo},
+		{Val: fourDaysAgo},
+		{Val: almostTodayButStillYesterday},
+	}
+	okValues := []any{
+		now,
+		oneDayAhead,
+		twoDaysAhead,
+		threeDaysAhead,
+		fourDaysAhead,
+		almostTomorrowButStillToday,
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, msg)
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	msg = fmt.Sprintf("Período não pode ser maior que %d dias. Comparando com: %v", maxDaysRange, threeDaysAgo)
+
+	fieldData.Rules = safe.Rules(safe.MaxDaysRange(threeDaysAgo, maxDaysRange)().WithMessage(msg))
+
+	invalidValues = []*InvalidValue{
+		{Val: oneDayAhead},
+		{Val: twoDaysAhead},
+		{Val: threeDaysAhead},
+		{Val: fourDaysAhead},
+	}
+	okValues = []any{
+		now,
+		oneDayAgo,
+		twoDaysAgo,
+		threeDaysAgo,
+		fourDaysAgo,
+		almostTomorrowButStillToday,
+		almostTodayButStillYesterday,
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, msg)
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
