@@ -24,6 +24,41 @@ import (
 //	}
 type Fields []*Field
 
+func (fields *Fields) SetRules(fieldName string, rules FieldRules) *Fields {
+	for _, f := range *fields {
+		if f.Name == fieldName {
+			f.Rules = rules
+			return fields
+		}
+	}
+
+	return fields
+}
+
+func (fields *Fields) SetValue(fieldName string, value any) *Fields {
+	for _, f := range *fields {
+		if f.Name == fieldName {
+			f.Value = value
+			return fields
+		}
+	}
+
+	return fields
+}
+
+func (fields *Fields) SetField(fieldName string, newField *Field) *Fields {
+	for _, f := range *fields {
+		if f.Name == fieldName {
+			f = newField
+			return fields
+		}
+	}
+
+	*fields = append(*fields, newField)
+
+	return fields
+}
+
 // An individual Field to be validated.
 //
 // It is highly advisable to use safe.Fields instead, since safe.Validate expects safe.Fields as argument.
@@ -35,7 +70,7 @@ type Field struct {
 }
 
 func (f *Field) String() string {
-	return fmt.Sprintf("Name: %s. Value: %v. Rules: %s", f.Name, f.Value, f.Rules)
+	return fmt.Sprintf("{ Name: %s, Value: %v, Rules: %s }", f.Name, f.Value, f.Rules)
 }
 
 type FieldRules []*RuleSet
