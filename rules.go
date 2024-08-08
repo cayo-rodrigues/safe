@@ -2,13 +2,30 @@ package safe
 
 import (
 	"regexp"
+	"strings"
 	"time"
 	"unicode/utf8"
 )
 
+type Rules []*RuleSet
+
+func (r Rules) String() string {
+	ruleNames := &strings.Builder{}
+	for i, rule := range r {
+		ruleNames.WriteString(rule.String())
+
+		isLastIteration := i == len(r)-1
+		if !isLastIteration {
+			ruleNames.WriteString(", ")
+		}
+	}
+
+	return ruleNames.String()
+}
+
 // A safe.RuleSet is what actually validates a value agains a validate func (a "rule" if you will).
 //
-// It also is responsible for providing error messages thourgh a message func.
+// It is also responsible for providing error messages thourgh a message func.
 //
 // Usualy, safe.RuleSets is not used directly.
 //

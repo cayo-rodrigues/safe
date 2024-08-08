@@ -1,9 +1,6 @@
 package safe
 
-import (
-	"fmt"
-	"strings"
-)
+import "fmt"
 
 // A slice of fields to be validated.
 // Each Field has a name, a value and a set of rules.
@@ -74,22 +71,6 @@ type Field struct {
 
 func (f *Field) String() string {
 	return fmt.Sprintf("{ Name: %s, Value: %v, Rules: %s }", f.Name, f.Value, f.Rules)
-}
-
-type Rules []*RuleSet
-
-func (r Rules) String() string {
-	ruleNames := &strings.Builder{}
-	for i, rule := range r {
-		ruleNames.WriteString(rule.String())
-
-		isLastIteration := i == len(r)-1
-		if !isLastIteration {
-			ruleNames.WriteString(", ")
-		}
-	}
-
-	return ruleNames.String()
 }
 
 // safe.Validate returns (safe.ErrorMessages, bool).
