@@ -1,0 +1,25 @@
+name: tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '*'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '*'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Go Faster
+        uses: WillAbides/setup-go-faster@v1.14.0
+
+      - name: Perform Tests
+        run: make test
