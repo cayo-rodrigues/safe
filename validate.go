@@ -24,6 +24,7 @@ import (
 //	}
 type Fields []*Field
 
+// Set rules for a specific field. This will overwrite the existing rules in the field.
 func (fields *Fields) SetRules(fieldName string, rules Rules) *Fields {
 	for _, f := range *fields {
 		if f.Name == fieldName {
@@ -35,6 +36,7 @@ func (fields *Fields) SetRules(fieldName string, rules Rules) *Fields {
 	return fields
 }
 
+// Set a value for a specific field. This will overwrite the existing value in the field.
 func (fields *Fields) SetValue(fieldName string, value any) *Fields {
 	for _, f := range *fields {
 		if f.Name == fieldName {
@@ -46,6 +48,7 @@ func (fields *Fields) SetValue(fieldName string, value any) *Fields {
 	return fields
 }
 
+// Create a new field or update an existing field.
 func (fields *Fields) SetField(fieldName string, newField *Field) *Fields {
 	for _, f := range *fields {
 		if f.Name == fieldName {
