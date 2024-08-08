@@ -29,5 +29,5 @@ func MaxCharsMsg(maxValue int) string {
 }
 
 func MaxDaysRangeMsg(maxDays int) string {
-	return fmt.Sprintf("Período não pode ser maior que %d dias. %v", maxDays)
+	return fmt.Sprintf("Período não pode ser maior que %d dias.", maxDays)
 }

@@ -11,7 +11,7 @@ import (
 func TestRequiredRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "name",
-		Rules: safe.Rules(safe.Required),
+		Rules: safe.Rules{safe.Required()},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -28,7 +28,7 @@ func TestRequiredRule(t *testing.T) {
 func TestEmailRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "email",
-		Rules: safe.Rules(safe.Email),
+		Rules: safe.Rules{safe.Email()},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -48,7 +48,7 @@ func TestEmailRule(t *testing.T) {
 func TestPhoneRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "phone",
-		Rules: safe.Rules(safe.Phone),
+		Rules: safe.Rules{safe.Phone()},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -71,7 +71,7 @@ func TestPhoneRule(t *testing.T) {
 func TestCpfRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "cpf",
-		Rules: safe.Rules(safe.Cpf),
+		Rules: safe.Rules{safe.Cpf()},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -92,7 +92,7 @@ func TestCpfRule(t *testing.T) {
 func TestCnpjRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "cnpj",
-		Rules: safe.Rules(safe.Cnpj),
+		Rules: safe.Rules{safe.Cnpj()},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -113,7 +113,7 @@ func TestCnpjRule(t *testing.T) {
 func TestCpfCnpjRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "cpf/cnpj",
-		Rules: safe.Rules(safe.CpfCnpj),
+		Rules: safe.Rules{safe.CpfCnpj()},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -139,7 +139,7 @@ func TestCpfCnpjRule(t *testing.T) {
 func TestCEPRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "cep",
-		Rules: safe.Rules(safe.CEP),
+		Rules: safe.Rules{safe.CEP()},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -162,7 +162,7 @@ func TestCEPRule(t *testing.T) {
 func TestStrongPasswordRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "strong_password",
-		Rules: safe.Rules(safe.StrongPassword),
+		Rules: safe.Rules{safe.StrongPassword()},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -191,7 +191,7 @@ func TestStrongPasswordRule(t *testing.T) {
 func TestUUIDRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "uuid",
-		Rules: safe.Rules(safe.UUID),
+		Rules: safe.Rules{safe.UUID()},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -218,7 +218,7 @@ func TestUUIDRule(t *testing.T) {
 func TestUniqueListRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "unique list",
-		Rules: safe.Rules(safe.UniqueList[any]),
+		Rules: safe.Rules{safe.UniqueList[any]()},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -241,7 +241,7 @@ func TestUniqueListRule(t *testing.T) {
 func TestMatchRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "match",
-		Rules: safe.Rules(safe.Match(safe.WhateverRegex)),
+		Rules: safe.Rules{safe.Match(safe.WhateverRegex)},
 	}
 
 	invalidValues := []*InvalidValue{}
@@ -250,7 +250,7 @@ func TestMatchRule(t *testing.T) {
 	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 
-	fieldData.Rules = safe.Rules(safe.Match(safe.AddressNumberRegex))
+	fieldData.Rules = safe.Rules{safe.Match(safe.AddressNumberRegex)}
 
 	invalidValues = []*InvalidValue{
 		{Val: "abc"},
@@ -272,7 +272,7 @@ func TestMatchRule(t *testing.T) {
 func TestMatchListRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "match list",
-		Rules: safe.Rules(safe.MatchList(safe.WhateverRegex)),
+		Rules: safe.Rules{safe.MatchList(safe.WhateverRegex)},
 	}
 
 	invalidValues := []*InvalidValue{}
@@ -283,7 +283,7 @@ func TestMatchListRule(t *testing.T) {
 	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 
-	fieldData.Rules = safe.Rules(safe.MatchList(safe.AddressNumberRegex))
+	fieldData.Rules = safe.Rules{safe.MatchList(safe.AddressNumberRegex)}
 
 	invalidValues = []*InvalidValue{
 		{Val: []string{"abc", "1 1", "321 Fundos"}},
@@ -301,7 +301,7 @@ func TestMinRule(t *testing.T) {
 
 	fieldData := &safe.Field{
 		Name:  "min",
-		Rules: safe.Rules(safe.Min(minValue)),
+		Rules: safe.Rules{safe.Min(minValue)},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -333,7 +333,7 @@ func TestMaxRule(t *testing.T) {
 
 	fieldData := &safe.Field{
 		Name:  "max",
-		Rules: safe.Rules(safe.Max(maxValue)),
+		Rules: safe.Rules{safe.Max(maxValue)},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -361,7 +361,7 @@ func TestMaxRule(t *testing.T) {
 func TestOneOfRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "one of",
-		Rules: safe.Rules(safe.OneOf([]any{"1", "2", "abc", 123, 99.9, "abc"})),
+		Rules: safe.Rules{safe.OneOf([]any{"1", "2", "abc", 123, 99.9, "abc"})},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -382,8 +382,8 @@ func TestOneOfRule(t *testing.T) {
 
 func TestNotOneOfRule(t *testing.T) {
 	fieldData := &safe.Field{
-		Name:  "no one of",
-		Rules: safe.Rules(safe.NotOneOf([]any{"1", "2", "abc", 123, 99.9, "abc"})),
+		Name:  "not one of",
+		Rules: safe.Rules{safe.NotOneOf([]any{"1", "2", "abc", 123, 99.9, "abc"})},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -401,7 +401,7 @@ func TestNotOneOfRule(t *testing.T) {
 func TestRequiredUnlessRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "required unless",
-		Rules: safe.Rules(safe.RequiredUnless(nil)),
+		Rules: safe.Rules{safe.RequiredUnless(nil)},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -418,7 +418,7 @@ func TestRequiredUnlessRule(t *testing.T) {
 	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MandatoryFieldMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 
-	fieldData.Rules = safe.Rules(safe.RequiredUnless("", nil, 0, struct{}{}, 0.01))
+	fieldData.Rules = safe.Rules{safe.RequiredUnless("", nil, 0, struct{}{}, 0.01)}
 
 	okValues = []any{"", 0, " ", nil, 1000, "anything", time.Now(), time.Time{}}
 
@@ -430,7 +430,7 @@ func TestAfterRule(t *testing.T) {
 
 	fieldData := &safe.Field{
 		Name:  "after",
-		Rules: safe.Rules(safe.After(now)),
+		Rules: safe.Rules{safe.After(now)},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -458,7 +458,7 @@ func TestNotAfterRule(t *testing.T) {
 
 	fieldData := &safe.Field{
 		Name:  "not after",
-		Rules: safe.Rules(safe.NotAfter(now)),
+		Rules: safe.Rules{safe.NotAfter(now)},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -486,7 +486,7 @@ func TestBeforeRule(t *testing.T) {
 
 	fieldData := &safe.Field{
 		Name:  "before",
-		Rules: safe.Rules(safe.Before(now)),
+		Rules: safe.Rules{safe.Before(now)},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -514,7 +514,7 @@ func TestNotBeforeRule(t *testing.T) {
 
 	fieldData := &safe.Field{
 		Name:  "not before",
-		Rules: safe.Rules(safe.NotBefore(now)),
+		Rules: safe.Rules{safe.NotBefore(now)},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -559,7 +559,7 @@ func TestMaxDaysRangeRule(t *testing.T) {
 
 	fieldData := &safe.Field{
 		Name:  "max days range",
-		Rules: safe.Rules(safe.MaxDaysRange(threeDaysAhead, maxDaysRange)().WithMessage(msg)),
+		Rules: safe.Rules{safe.MaxDaysRange(threeDaysAhead, maxDaysRange).WithMessage(msg)},
 	}
 
 	invalidValues := []*InvalidValue{
@@ -583,7 +583,7 @@ func TestMaxDaysRangeRule(t *testing.T) {
 
 	msg = fmt.Sprintf("Período não pode ser maior que %d dias. Comparando com: %v", maxDaysRange, threeDaysAgo)
 
-	fieldData.Rules = safe.Rules(safe.MaxDaysRange(threeDaysAgo, maxDaysRange)().WithMessage(msg))
+	fieldData.Rules = safe.Rules{safe.MaxDaysRange(threeDaysAgo, maxDaysRange).WithMessage(msg)}
 
 	invalidValues = []*InvalidValue{
 		{Val: oneDayAhead},
@@ -609,7 +609,7 @@ func TestWithMessage(t *testing.T) {
 	customErrMsg := "custom err msg"
 	fieldData := &safe.Field{
 		Name:  "email",
-		Rules: safe.Rules(safe.Email().WithMessage(customErrMsg)),
+		Rules: safe.Rules{safe.Email().WithMessage(customErrMsg)},
 	}
 
 	invalidValues := []*InvalidValue{{Val: 0, ExpectedErrMsg: customErrMsg}}

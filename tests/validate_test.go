@@ -38,8 +38,8 @@ func TestValidationFailure(t *testing.T) {
 
 	fields := sampleFields(user)
 
-	nameRules := safe.Rules(safe.Required, safe.Max(maxNameChars))
-	ageRules := safe.Rules(safe.Required, safe.Min(minAge)().WithMessage(expectedAgeErrMsg))
+	nameRules := safe.Rules{safe.Required(), safe.Max(maxNameChars)}
+	ageRules := safe.Rules{safe.Required(), safe.Min(minAge).WithMessage(expectedAgeErrMsg)}
 
 	fields.SetRules("name", nameRules).SetRules("age", ageRules)
 

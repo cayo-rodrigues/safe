@@ -14,17 +14,17 @@ import (
 //		{
 //			Name: "Email",
 //			Value: user.Email,
-//			Rules: safe.Rules(safe.Required, safe.Email, safe.Max(128)),
+//			Rules: safe.Rules{safe.Requiredi(), safe.Email(), safe.Max(128)},
 //		},
 //		{
 //			Name: "Password",
 //			Value: user.Password,
-//			Rules: safe.Rules(safe.Required, safe.Max(128), safe.StrongPassword),
+//			Rules: safe.Rules{safe.Required(), safe.Max(128), safe.StrongPassword()},
 //		},
 //	}
 type Fields []*Field
 
-func (fields *Fields) SetRules(fieldName string, rules FieldRules) *Fields {
+func (fields *Fields) SetRules(fieldName string, rules Rules) *Fields {
 	for _, f := range *fields {
 		if f.Name == fieldName {
 			f.Rules = rules
@@ -66,16 +66,16 @@ type Field struct {
 	// This is the name used as a key in the ErrorMessages map when the field is not valid
 	Name  string
 	Value any
-	Rules FieldRules
+	Rules Rules
 }
 
 func (f *Field) String() string {
 	return fmt.Sprintf("{ Name: %s, Value: %v, Rules: %s }", f.Name, f.Value, f.Rules)
 }
 
-type FieldRules []*RuleSet
+type Rules []*RuleSet
 
-func (r FieldRules) String() string {
+func (r Rules) String() string {
 	ruleNames := &strings.Builder{}
 	for i, rule := range r {
 		ruleNames.WriteString(rule.String())

@@ -51,72 +51,72 @@ func sampleFields(user *SampleUser) safe.Fields {
 		{
 			Name:  "id",
 			Value: user.ID,
-			Rules: safe.Rules(safe.Required, safe.UUID),
+			Rules: safe.Rules{safe.Required(), safe.UUID()},
 		},
 		{
 			Name:  "name",
 			Value: user.Name,
-			Rules: safe.Rules(safe.Required, safe.Max(128), safe.Min(3)),
+			Rules: safe.Rules{safe.Required(), safe.Max(128), safe.Min(3)},
 		},
 		{
 			Name:  "email",
 			Value: user.Email,
-			Rules: safe.Rules(safe.Email, safe.RequiredUnless(user.CpfCnpj, user.Phone)),
+			Rules: safe.Rules{safe.Email(), safe.RequiredUnless(user.CpfCnpj, user.Phone)},
 		},
 		{
 			Name:  "phone",
 			Value: user.Phone,
-			Rules: safe.Rules(safe.Phone, safe.RequiredUnless(user.Email, user.CpfCnpj)),
+			Rules: safe.Rules{safe.Phone(), safe.RequiredUnless(user.Email, user.CpfCnpj)},
 		},
 		{
 			Name:  "cpf/cnpj",
 			Value: user.CpfCnpj,
-			Rules: safe.Rules(safe.CpfCnpj, safe.RequiredUnless(user.Email, user.Phone)),
+			Rules: safe.Rules{safe.CpfCnpj(), safe.RequiredUnless(user.Email, user.Phone)},
 		},
 		{
 			Name:  "password",
 			Value: user.Password,
-			Rules: safe.Rules(safe.Required, safe.StrongPassword),
+			Rules: safe.Rules{safe.Required(), safe.StrongPassword()},
 		},
 		{
 			Name:  "age",
 			Value: user.Age,
-			Rules: safe.Rules(safe.Min(18), safe.Max(60)),
+			Rules: safe.Rules{safe.Min(18), safe.Max(60)},
 		},
 		{
 			Name:  "job",
 			Value: user.Job,
-			Rules: safe.Rules(safe.OneOf(sampleJobs())),
+			Rules: safe.Rules{safe.OneOf(sampleJobs())},
 		},
 		{
 			Name:  "address_street",
 			Value: user.Address.Street,
-			Rules: safe.Rules(safe.Required, safe.Max(128)),
+			Rules: safe.Rules{safe.Required(), safe.Max(128)},
 		},
 		{
 			Name:  "address_number",
 			Value: user.Address.Number,
-			Rules: safe.Rules(safe.Required, safe.Match(safe.AddressNumberRegex)),
+			Rules: safe.Rules{safe.Required(), safe.Match(safe.AddressNumberRegex)},
 		},
 		{
 			Name:  "address_neighborhood",
 			Value: user.Address.Neighborhood,
-			Rules: safe.Rules(safe.Required, safe.Max(128)),
+			Rules: safe.Rules{safe.Required(), safe.Max(128)},
 		},
 		{
 			Name:  "address_city",
 			Value: user.Address.City,
-			Rules: safe.Rules(safe.RequiredUnless(user.Address.Cep), safe.Max(128)),
+			Rules: safe.Rules{safe.RequiredUnless(user.Address.Cep), safe.Max(128)},
 		},
 		{
 			Name:  "address_state",
 			Value: user.Address.State,
-			Rules: safe.Rules(safe.RequiredUnless(user.Address.Cep), safe.Max(2)),
+			Rules: safe.Rules{safe.RequiredUnless(user.Address.Cep), safe.Max(2)},
 		},
 		{
 			Name:  "address_cep",
 			Value: user.Address.Cep,
-			Rules: safe.Rules(safe.CEP),
+			Rules: safe.Rules{safe.CEP()},
 		},
 	}
 }
