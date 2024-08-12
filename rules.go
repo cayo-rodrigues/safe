@@ -27,9 +27,9 @@ func (r Rules) String() string {
 //
 // It is also responsible for providing error messages thourgh a message func.
 //
-// Usualy, safe.RuleSets is not used directly.
+// Usualy, safe.RuleSet is not used directly.
 //
-// Instead, it is preffered to use a function that returns a *safe.RuleSet, like the ones exposed by this library.
+// This library exposes functions that return a *safe.RuleSet. You can also make your own!
 type RuleSet struct {
 	RuleName     string
 	FieldValue   any
