@@ -42,10 +42,15 @@ func All(vals ...any) bool {
 
 // In safe, the concept of "having a value" is described as follows:
 //
-// - bool: it must be true.
-// - string: it must have more than one rune (or character, if you will).
-// - int, float64, float32: it must not be zero.
-// - time.Time: it must not be the zero time instant, as prescribed by time.Time.IsZero.
+//	bool: it must be true.
+//
+//	string: it must have more than one rune (or character, if you will).
+//
+//	int, float64, float32: it must not be zero.
+//
+//	time.Time: it must not be the zero time instant, as prescribed by time.Time.IsZero.
+//
+//	anything else: is not nil
 func HasValue(val any) bool {
 	switch val := val.(type) {
 	case bool:
@@ -60,9 +65,11 @@ func HasValue(val any) bool {
 		return val != 0
 	case time.Time:
 		return !val.IsZero()
+	case struct{}:
+		return false
+	default:
+		return val != nil
 	}
-
-	return false
 }
 
 // Given a list of values, all of them should be unique.

@@ -188,10 +188,10 @@ func TestStrongPasswordRule(t *testing.T) {
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
-func TestUUIDRule(t *testing.T) {
+func TestUUIDstrRule(t *testing.T) {
 	fieldData := &safe.Field{
-		Name:  "uuid",
-		Rules: safe.Rules{safe.UUID()},
+		Name:  "uuid str",
+		Rules: safe.Rules{safe.UUIDstr()},
 	}
 
 	invalidValues := []*InvalidValue{

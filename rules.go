@@ -297,10 +297,15 @@ func StrongPassword() *RuleSet {
 	}
 }
 
-// The field must be a string with a valid format for a uuid.
-func UUID() *RuleSet {
+// The field must be a string with a valid format for a uuid v1, v4, v5 or v7.
+//
+// In case you are using a uuid package like google's, you will likely
+// not need this, because you will already have a uuid validation method.
+//
+// Besides that, most of the time the database itself will generate the uuids.
+func UUIDstr() *RuleSet {
 	return &RuleSet{
-		RuleName: "safe.UUID",
+		RuleName: "safe.UUIDstr",
 		MessageFunc: func(rs *RuleSet) string {
 			return InvalidFormatMsg
 		},

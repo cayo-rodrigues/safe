@@ -51,7 +51,7 @@ func sampleFields(user *SampleUser) safe.Fields {
 		{
 			Name:  "id",
 			Value: user.ID,
-			Rules: safe.Rules{safe.Required(), safe.UUID()},
+			Rules: safe.Rules{safe.Required(), safe.UUIDstr()},
 		},
 		{
 			Name:  "name",
