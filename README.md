@@ -105,11 +105,11 @@ MyCustomRule := &safe.RuleSet{
         // in this function, you may perform any validation you want!
         userInput, ok := rs.FieldValue.(string)
         if !ok {
-                return false
+            return false
         }
 
         if userInput == "" {
-                return true // in case you return false, the field will be required
+            return true // in case you return false, the field will be required
         }
 
         isValid := false

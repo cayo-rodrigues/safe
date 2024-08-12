@@ -11,10 +11,10 @@ var EmailRegex = regexp.MustCompile(`[^@ \t\r\n]+@[^@ \t\r\n]+\.[^@ \t\r\n]+`)
 var PhoneRegex = regexp.MustCompile(`(?:(?:\+|00)?(55)\s?)?(?:\(?([1-9][0-9])\)?\s?)(?:((?:9\d|[2-9])\d{3})\-?(\d{4}))`)
 
 // with or without symbols (.-/)
-var CpfRegex = regexp.MustCompile(`^\d{3}.?\d{3}.?\d{3}\-?\d{2}$`)
+var CpfRegex = regexp.MustCompile(`^\d{3}\.?\d{3}\.?\d{3}\-?\d{2}$`)
 
 // with or without symbols (.-/)
-var CnpjRegex = regexp.MustCompile(`^(\d{2}.?\d{3}.?\d{3}\/?\d{4}\-?\d{2})$`)
+var CnpjRegex = regexp.MustCompile(`^(\d{2}\.?\d{3}\.?\d{3}\/?\d{4}\-?\d{2})$`)
 
 // with or without dash (-)
 var CepRegex = regexp.MustCompile(`(^\d{5})\-?(\d{3}$)`)

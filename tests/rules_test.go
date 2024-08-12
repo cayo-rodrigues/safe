@@ -54,14 +54,14 @@ func TestPhoneRule(t *testing.T) {
 	invalidValues := []*InvalidValue{
 		{Val: " "},
 		{Val: "123"},
-		{Val: "999445697"},
+		{Val: "999445678"},
 	}
 	okValues := []any{
-		"(35) 99944-5697",
-		"(35)99944-5697",
-		"35999445697",
-		"5535999445697",
-		"+5535999445697",
+		"(35) 99944-5678",
+		"(35)99944-5678",
+		"35999445678",
+		"5535999445678",
+		"+5535999445678",
 	}
 
 	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
@@ -77,12 +77,13 @@ func TestCpfRule(t *testing.T) {
 	invalidValues := []*InvalidValue{
 		{Val: " "},
 		{Val: "123"},
-		{Val: "139503176"},
-		{Val: "139.503.176.27"},
+		{Val: "9004912401"},
+		{Val: "308.305.800.42"},
+		{Val: "393z546.320-09"},
 	}
 	okValues := []any{
-		"13950317627",
-		"139.503.176-27",
+		"11421499002",
+		"393.546.320-09",
 	}
 
 	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
@@ -98,12 +99,13 @@ func TestCnpjRule(t *testing.T) {
 	invalidValues := []*InvalidValue{
 		{Val: " "},
 		{Val: "123"},
-		{Val: "445040440001"},
-		{Val: "44.504.044/0001-aa"},
+		{Val: "575067450001"},
+		{Val: "74.082.201/0001-aa"},
+		{Val: "74.082.201b0001-86"},
 	}
 	okValues := []any{
-		"44.504.044/0001-24",
-		"44504044000124",
+		"45.769.852/0001-86",
+		"11789602000196",
 	}
 
 	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
@@ -119,17 +121,17 @@ func TestCpfCnpjRule(t *testing.T) {
 	invalidValues := []*InvalidValue{
 		{Val: " "},
 		{Val: "123"},
-		{Val: "139503176"},
-		{Val: "139.503.176.27"},
+		{Val: "3589256907"},
+		{Val: "073.27.370-96"},
 		{Val: "44504044000127272"},
-		{Val: "445040440001aa"},
-		{Val: "44.504.044/0001-aa"},
+		{Val: "543368000001aa"},
+		{Val: "43.549a814/0001-92"},
 	}
 	okValues := []any{
-		"44.504.044/0001-24",
-		"44504044000124",
-		"13950317627",
-		"139.503.176-27",
+		"99.379.672/0001-17",
+		"68840265000131",
+		"90007645058",
+		"738.691.910-74",
 	}
 
 	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
@@ -145,14 +147,14 @@ func TestCEPRule(t *testing.T) {
 	invalidValues := []*InvalidValue{
 		{Val: " "},
 		{Val: "123"},
-		{Val: "3661000"},
-		{Val: "3750800"},
-		{Val: "37508 000"},
+		{Val: "5432042"},
+		{Val: "8908270"},
+		{Val: "52120 330"},
 	}
 	okValues := []any{
-		"36610000",
-		"37508000",
-		"36610-000",
+		"77001286",
+		"77414752",
+		"49001-084",
 	}
 
 	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)

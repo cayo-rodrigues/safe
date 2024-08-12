@@ -29,7 +29,7 @@ func newSampleUser() *SampleUser {
 		Name:     "some random name rodriguez",
 		Email:    "user@user.com",
 		Phone:    "+55 99988-7766",
-		CpfCnpj:  "03.495.850/0001-04",
+		CpfCnpj:  "85.200.013/0001-67",
 		Password: "^123!q@w#e4R5T6Y$",
 		Age:      25,
 		Job:      "software developer",
