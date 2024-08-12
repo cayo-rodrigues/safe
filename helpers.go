@@ -50,6 +50,8 @@ func All(vals ...any) bool {
 //
 //	time.Time: it must not be the zero time instant, as prescribed by time.Time.IsZero.
 //
+//	struct{}: empty structs are not considered as "having a value"
+//
 //	anything else: is not nil
 func HasValue(val any) bool {
 	switch val := val.(type) {
