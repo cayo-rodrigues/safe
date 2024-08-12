@@ -163,4 +163,4 @@ Safe also exposes some regexes for convenience. They are:
 
 Please refer to their individual documentations.
 
-Regarding regexes, here is a useful repo: osintbrazuca.
+Regarding regexes, here is a useful repo: https://github.com/osintbrazuca/osint-brazuca-regex.
