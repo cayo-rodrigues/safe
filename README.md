@@ -64,7 +64,7 @@ fields := safe.Fields{
     },
     {
         Name: "company_id",
-        Value: u.UUIDstr,
+        Value: u.CompanyID,
         Rules: safe.Rules{
             safe.RequiredUnless(safe.CnpjRegex.MatchString(u.CpfCnpj)).WithMessage("Must provide a valid cnpj or company_id"), // got it?
             safe.UUIDstr(),
