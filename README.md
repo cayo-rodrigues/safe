@@ -96,28 +96,28 @@ You can also create your own rules. For instance:
 
 ```go
 MyCustomRule := &safe.RuleSet{
-	RuleName: "my own rule!", // this is used only for pretty printing, like fmt.Println("%s", rs)
-	MessageFunc: func(rs *safe.RuleSet) string {
+    RuleName: "my own rule!", // this is used only for pretty printing, like fmt.Println("%s", rs)
+    MessageFunc: func(rs *safe.RuleSet) string {
         // here, you can return a message for when the input is not valid
-		return fmt.Sprintf("why did you input %v? please colaborate", rs.FieldValue)
-	},
-	ValidateFunc: func(rs *safe.RuleSet) bool {
+        return fmt.Sprintf("why did you input %v? please colaborate", rs.FieldValue)
+    },
+    ValidateFunc: func(rs *safe.RuleSet) bool {
         // in this function, you may perform any validation you want!
-		userInput, ok := rs.FieldValue.(string)
-		if !ok {
-			return false
-		}
+        userInput, ok := rs.FieldValue.(string)
+        if !ok {
+                return false
+        }
 
-		if userInput == "" {
-			return true // in case you return false, the field will be required
-		}
-        
+        if userInput == "" {
+                return true // in case you return false, the field will be required
+        }
+
         isValid := false
-        
+    
         // perform checks...
         
         return isValid
-	},
+    },
 }
 
 someVal := "someVal"
