@@ -6,7 +6,7 @@ import (
 	"github.com/cayo-rodrigues/safe"
 )
 
-type InvalidValue struct {
+type invalidValue struct {
 	Val            any
 	ExpectedErrMsg string
 }
@@ -30,7 +30,7 @@ func testFieldWithOkValues(fieldData *safe.Field, validValues []any, t *testing.
 	}
 }
 
-func testFieldWithInvalidValues(fieldData *safe.Field, invalidValues []*InvalidValue, t *testing.T, singleErrMsg ...string) {
+func testFieldWithInvalidValues(fieldData *safe.Field, invalidValues []*invalidValue, t *testing.T, singleErrMsg ...string) {
 	sharedErrMsg := ""
 	if len(singleErrMsg) > 0 {
 		sharedErrMsg = singleErrMsg[0]

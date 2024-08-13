@@ -25,7 +25,7 @@ func TestValidationFailure(t *testing.T) {
 
 	user.Name = "pepsimaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaannn"
 	user.Age = 17
-	user.Address.Cep = ""
+	user.sampleAddress.Cep = ""
 	user.Job = "pepsiman"
 	user.Password = "ZkJ{[!#"
 	user.CpfCnpj = "tananana tananana tananana pepsimaaaaan"

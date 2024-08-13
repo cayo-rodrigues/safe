@@ -2,7 +2,7 @@ package tests
 
 import "github.com/cayo-rodrigues/safe"
 
-type SampleUser struct {
+type sampleUser struct {
 	ID       string
 	Name     string
 	Email    string
@@ -11,10 +11,10 @@ type SampleUser struct {
 	Password string
 	Age      int
 	Job      string
-	*Address
+	*sampleAddress
 }
 
-type Address struct {
+type sampleAddress struct {
 	Street       string
 	Number       string
 	Cep          string
@@ -23,8 +23,8 @@ type Address struct {
 	State        string
 }
 
-func newSampleUser() *SampleUser {
-	return &SampleUser{
+func newSampleUser() *sampleUser {
+	return &sampleUser{
 		ID:       "f51abc35-4aa1-439b-a985-6d56439901d9",
 		Name:     "some random name rodriguez",
 		Email:    "user@user.com",
@@ -33,7 +33,7 @@ func newSampleUser() *SampleUser {
 		Password: "^123!q@w#e4R5T6Y$",
 		Age:      25,
 		Job:      "software developer",
-		Address: &Address{
+		sampleAddress: &sampleAddress{
 			Street:       "Praça Coronel Ernesto Muniz Barreto",
 			Number:       "15",
 			Cep:          "49750-970",
@@ -46,7 +46,7 @@ func sampleJobs() []string {
 	return []string{"software developer", "designer", "devops engineer", "po", "techlead", "scrum master", "ceo", "marketing", "sales", "cs", "spider-man", ""}
 }
 
-func sampleFields(user *SampleUser) safe.Fields {
+func sampleFields(user *sampleUser) safe.Fields {
 	return safe.Fields{
 		{
 			Name:  "id",
@@ -90,32 +90,32 @@ func sampleFields(user *SampleUser) safe.Fields {
 		},
 		{
 			Name:  "address_street",
-			Value: user.Address.Street,
+			Value: user.sampleAddress.Street,
 			Rules: safe.Rules{safe.Required(), safe.Max(128)},
 		},
 		{
 			Name:  "address_number",
-			Value: user.Address.Number,
+			Value: user.sampleAddress.Number,
 			Rules: safe.Rules{safe.Required(), safe.Match(safe.AddressNumberRegex)},
 		},
 		{
 			Name:  "address_neighborhood",
-			Value: user.Address.Neighborhood,
+			Value: user.sampleAddress.Neighborhood,
 			Rules: safe.Rules{safe.Required(), safe.Max(128)},
 		},
 		{
 			Name:  "address_city",
-			Value: user.Address.City,
-			Rules: safe.Rules{safe.RequiredUnless(user.Address.Cep), safe.Max(128)},
+			Value: user.sampleAddress.City,
+			Rules: safe.Rules{safe.RequiredUnless(user.sampleAddress.Cep), safe.Max(128)},
 		},
 		{
 			Name:  "address_state",
-			Value: user.Address.State,
-			Rules: safe.Rules{safe.RequiredUnless(user.Address.Cep), safe.Max(2)},
+			Value: user.sampleAddress.State,
+			Rules: safe.Rules{safe.RequiredUnless(user.sampleAddress.Cep), safe.Max(2)},
 		},
 		{
 			Name:  "address_cep",
-			Value: user.Address.Cep,
+			Value: user.sampleAddress.Cep,
 			Rules: safe.Rules{safe.CEP()},
 		},
 	}
