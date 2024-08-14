@@ -2,7 +2,7 @@
 
 > A simple Go validation library
 
-
+<img src="./logo.png" width="20%" alt="Safe logo">
 
 User input is unpredictable. Never trust it. Use this library to validate anything you want, and you know you're safe!
 
