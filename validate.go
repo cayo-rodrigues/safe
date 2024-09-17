@@ -1,6 +1,10 @@
 package safe
 
-import "fmt"
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+)
 
 // A slice of fields to be validated.
 // Each Field has a name, a value and a set of rules.
@@ -89,6 +93,23 @@ func (f *Field) String() string {
 //		fmt.Println("why is email not valid?", errors["Email"])
 //	}
 type ErrorMessages map[string]string
+
+// Implements the error interface. Calls the JSON method and converts it to string.
+func (errors *ErrorMessages) Error() string {
+	return string(errors.JSON())
+}
+
+// Returns the JSON version of ErrorMessages
+//
+// In case of error, returns an empty []byte
+func (errors *ErrorMessages) JSON() []byte {
+	errorsJson, err := json.Marshal(errors)
+	if err != nil {
+		log.Printf("Could not marshal ErrorMessages to json: %v\n", err)
+		return []byte{}
+	}
+	return errorsJson
+}
 
 // Expects Fields, which is just a []*Field. Each Field has a slice of Rules.
 // All of them are evalueted sequentially.
