@@ -23,7 +23,7 @@ jobs:
       - name: Setup Go Faster
         uses: WillAbides/setup-go-faster@v1.14.0
         with:
-          go-version: 1.22.5
+          go-version: 1.23
 
       - name: Perform Tests
         run: make test
