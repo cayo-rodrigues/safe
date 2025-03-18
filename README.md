@@ -158,6 +158,7 @@ Safe also exposes some regexes for convenience. They are:
 - `safe.CepRegex`
 - `safe.AddressNumberRegex`
 - `safe.UUIDRegex`
+- `safe.NoWhitespaceRegex`
 
 Please refer to their individual documentations.
 
