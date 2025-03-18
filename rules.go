@@ -717,7 +717,7 @@ func MaxDaysRange(dt time.Time, maxDays int) *RuleSet {
 		ValidateFunc: func(rs *RuleSet) bool {
 			switch val := rs.FieldValue.(type) {
 			case time.Time:
-				diffInDays := DaysDifference(dt, val)
+				diffInDays := DifferenceInDays(dt, val)
 				return diffInDays <= maxDays
 			}
 
@@ -725,4 +725,34 @@ func MaxDaysRange(dt time.Time, maxDays int) *RuleSet {
 		},
 	}
 
+}
+
+// The field value must implement the comparable interface.
+//
+// The value of the field should be equal to the provided value.
+//
+// This rule behaves exactly like safe.OneOf, but with only one value to compare
+func EqualTo[T comparable](value T) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.EqualTo",
+		MessageFunc: func(rs *RuleSet) string {
+			return UnacceptableValueMsg
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			return rs.FieldValue == value
+		},
+	}
+}
+
+// Exactly the opposite of safe.EqualTo.
+func NotEqualTo[T comparable](value T) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.NotEqualTo",
+		MessageFunc: func(rs *RuleSet) string {
+			return UnacceptableValueMsg
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			return rs.FieldValue != value
+		},
+	}
 }

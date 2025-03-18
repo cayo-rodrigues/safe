@@ -217,9 +217,9 @@ func TestUUIDstrRule(t *testing.T) {
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
-func TestNoWhitespaceRule(t *testing.T)  {
+func TestNoWhitespaceRule(t *testing.T) {
 	fieldData := &safe.Field{
-		Name: "no_whitespace",
+		Name:  "no_whitespace",
 		Rules: safe.Rules{safe.NoWhitespace()},
 	}
 
@@ -632,6 +632,75 @@ func TestMaxDaysRangeRule(t *testing.T) {
 	}
 
 	testFieldWithInvalidValues(fieldData, invalidValues, t, msg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestEqualToRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "equal_to",
+		Rules: safe.Rules{safe.EqualTo(":) ")},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: ":)"},
+		{Val: ") "},
+		{Val: ""},
+		{},
+	}
+	okValues := []any{
+		":) ",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	fieldData.Rules = safe.Rules{safe.EqualTo("")}
+
+	invalidValues = []*invalidValue{
+		{Val: " "},
+		{Val: "'"},
+		{Val: "\\0"},
+	}
+	okValues = []any{
+		"",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestNotEqualToRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "not_equal_to",
+		Rules: safe.Rules{safe.NotEqualTo(" ;(")},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: " ;("},
+	}
+	okValues := []any{
+		":) ",
+		";()",
+		";(",
+		" ;( ",
+		";( ",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	fieldData.Rules = safe.Rules{safe.NotEqualTo("")}
+
+	invalidValues = []*invalidValue{
+		{Val: ""},
+	}
+	okValues = []any{
+		" ",
+		"'",
+		"\\0",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 

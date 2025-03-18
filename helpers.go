@@ -1,7 +1,6 @@
 package safe
 
 import (
-	"regexp"
 	"time"
 	"unicode/utf8"
 )
@@ -95,10 +94,10 @@ func IsStrongPassword(password string) bool {
 		return false
 	}
 
-	hasUppercase := regexp.MustCompile(`[A-Z]`).MatchString
-	hasLowercase := regexp.MustCompile(`[a-z]`).MatchString
-	hasDigit := regexp.MustCompile(`[\d]`).MatchString
-	hasSpecial := regexp.MustCompile(`[@#$%&*!-+&*]`).MatchString
+	hasUppercase := HasUppercaseRegex.MatchString
+	hasLowercase := HasLowercaseRegex.MatchString
+	hasDigit := HasDigitRegex.MatchString
+	hasSpecial := HasSpecialCharacterRegex.MatchString
 
 	return hasUppercase(password) && hasLowercase(password) && hasDigit(password) && hasSpecial(password)
 }
@@ -109,7 +108,7 @@ func IsStrongPassword(password string) bool {
 // It will purely considerer the days.
 //
 // The order of the arguments does not matter, and which one comes first or last in time does not matter as well.
-func DaysDifference(dt1, dt2 time.Time) int {
+func DifferenceInDays(dt1, dt2 time.Time) int {
 	year1, month1, day1 := dt1.Date()
 	year2, month2, day2 := dt2.Date()
 	date1 := time.Date(year1, month1, day1, 0, 0, 0, 0, dt1.Location())

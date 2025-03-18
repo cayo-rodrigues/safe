@@ -67,7 +67,7 @@ func (fields *Fields) SetField(fieldName string, newField *Field) *Fields {
 //
 // It is highly advisable to use safe.Fields instead, since safe.Validate expects safe.Fields as argument.
 type Field struct {
-	// This is the name used as a key in the ErrorMessages map when the field is not valid
+	// Name is used as a key in the ErrorMessages map when the field is not valid
 	Name  string
 	Value any
 	Rules Rules

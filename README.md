@@ -84,11 +84,72 @@ errors, isValid := safe.Validate(fields)
 
 That's it! 
 
-In the example above, `errors` is a `map[string]string` with error messages for each field. The default error message can be overwritten with the `WithMessage` func, as demonstrated in the example, for the email field.
+In the example above, `errors` is a `safe.ErrorMessages`, which is just a wrapper around `map[string]string` that implements the `error` interface. It has error messages for each field. The default error message can be overwritten with the `WithMessage` func, as demonstrated in the example, for the email field.
 
 When a field fails to pass a given rule, no more subsequent rules are applied. For instance, if password is not provided, it will fail the `safe.Required` rule, hence the `safe.StrongPassword` rule will not run its validation func, and the resulting error message will be regarding the absence of a value, instead of the fact that it does not conform to a strong password standard.
 
 You can refer to the source code or the individual documentation of each function for further instructions. They are all very intuitive.
+
+## Use cases
+
+The fact that `safe.ErrorMessages` implements the `error` interface makes it possible to use it in any error handling case, just like any other error. 
+
+For example, suppose you have a custom error you return from an http api. You could do something like this:
+
+```go
+type ApiError struct {
+	StatusCode  int                `json:"status_code"`
+	Msg         string             `json:"msg"`
+	FieldErrors safe.ErrorMessages `json:"field_errors"`
+}
+
+func (e ApiError) Error() string {
+    // ...
+}
+```
+
+You could also use it for unit testing:
+
+```go
+
+func TestInsertStuffService(t *testing.T) {
+    input := StuffInputData{
+        A: "a",
+        B: "bb",
+    }
+    output := services.InsertStuffService(&input)
+
+    expectedOutputConditions := safe.Fields{
+        {
+            Name: "output_ID",
+            Value: output.ID,
+            Rules: safe.Rules{safe.Required(), safe.UUIDstr()},
+        },
+        {
+            Name: "output_A",
+            Value: output.A,
+            Rules: safe.Rules{safe.Required(), safe.EqualTo(input.A)},
+        },
+        {
+            Name: "output_B",
+            Value: output.B,
+            Rules: safe.Rules{safe.Required(), safe.EqualTo(input.B)},
+        },
+        {
+            Name: "output_CreatedAt",
+            Value: output.CreatedtAt,
+            Rules: safe.Rules{safe.Required()},
+        }
+    }
+
+    errors, ok := safe.Validate(expectedOutputConditions)
+    if !ok {
+        t.Fatalf("Output does not match expected conditions: %s", errors)
+    }
+}
+
+```
+
 
 ## Creating your own rules
 
@@ -142,7 +203,7 @@ Safe exposes some helper functions that you can use, whether in the context of v
 - `safe.HasValue`
 - `safe.AllUnique`
 - `safe.IsStrongPassword`
-- `safe.DaysDifference`
+- `safe.DifferenceInDays`
 
 Please refer to their individual documentations.
 
@@ -159,6 +220,10 @@ Safe also exposes some regexes for convenience. They are:
 - `safe.AddressNumberRegex`
 - `safe.UUIDRegex`
 - `safe.NoWhitespaceRegex`
+- `safe.HasUppercaseRegex`
+- `safe.HasLowercaseRegex`
+- `safe.HasDigitRegex`
+- `safe.HasSpecialCharacterRegex`
 
 Please refer to their individual documentations.
 
