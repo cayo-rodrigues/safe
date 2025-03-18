@@ -324,6 +324,30 @@ func UUIDstr() *RuleSet {
 	}
 }
 
+// The field must be a string with no whitespaces
+//
+// This includes characters like \n (linebreaks) and \t (tabs)
+func NoWhitespace() *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.NoWhitespaces",
+		MessageFunc: func(rs *RuleSet) string {
+			return InvalidFormatMsg
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.FieldValue.(string)
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			return NoWhitespaceRegex.MatchString(str)
+		},
+	}
+}
+
 // The field must be a slice of values, each of them implementing the comparable interface.
 // All values in the list should be unique.
 //

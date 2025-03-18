@@ -217,6 +217,34 @@ func TestUUIDstrRule(t *testing.T) {
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
+func TestNoWhitespaceRule(t *testing.T)  {
+	fieldData := &safe.Field{
+		Name: "no_whitespace",
+		Rules: safe.Rules{safe.NoWhitespace()},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: " "},
+		{Val: "1 23"},
+		{Val: "aaa "},
+		{Val: 0},
+		{Val: " xxx"},
+		{Val: "q w e r t y"},
+		{Val: "Sou um amendobobo yeah!"},
+		{Val: "	tabbehindme"},
+		{Val: "linebreak\nnotallowed"},
+		{Val: "tabaswell\t"},
+	}
+	okValues := []any{
+		"Você_é_um_amendobobo_yeah!",
+		"Somosamendobobosyeah!",
+		"bobo___bobo___amendobobo-ye-ah-!",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
 func TestUniqueListRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "unique list",

@@ -23,3 +23,5 @@ var CepRegex = regexp.MustCompile(`(^\d{5})\-?(\d{3}$)`)
 var AddressNumberRegex = regexp.MustCompile(`^(?:s\/n|S\/n|S\/N|s\/N)|^(\d)*$`)
 
 var UUIDRegex = regexp.MustCompile(`^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-(1|4|5|7)[a-fA-F0-9]{3}-[89abAB][a-fA-F0-9]{3}-[a-fA-F0-9]{12}$`)
+
+var NoWhitespaceRegex = regexp.MustCompile(`^\S+$`)
