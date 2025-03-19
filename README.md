@@ -77,6 +77,10 @@ fields := safe.Fields{
     },
 }
 
+// this will set the language for all the error messages
+// the default is languages.PT_BR
+fields.SetLanguage(languages.EN_US)
+
 errors, isValid := safe.Validate(fields)
 ```
 
@@ -150,6 +154,68 @@ func TestInsertStuffService(t *testing.T) {
 
 ```
 
+## About error messages and languages
+
+Safe exposes `messages.Messages`, which is a localized set of error messages.
+
+You can either extend the behavior of `messages.Messages` or create your own set of messages, completely decoupled from it.
+
+You are free to use `messages.Messages` directly or to use the shortcuts provided in the `messages` package, like `messages.MandatoryFieldMsg`, `messages.MaxValueMsg`, and so forth.
+The shortcuts provide a straightforward way to access a message, with an optional `language.Language` input.
+
+The default language used in the error messages is `languages.PT_BR`, but you can use `languages.EN_US` as well. No other languages are supported out of the box right now, but nothing stops you from creating your own! 
+
+Here is an example of what it may look like:
+
+```go
+myLang := languages.Language("ES_LA")
+myMsgKey := messages.MessageKey("myMsgKey")
+
+myMsgPt := "my msg PT"
+myMsgEn := "my msg EN"
+myMsgInMyLang := "my msg arriba!"
+
+messages.Messages.Update(messages.LocalizedMessages{
+    languages.PT_BR: {
+        myMsgKey: myMsgPt,
+    },
+    languages.EN_US: {
+        myMsgKey: myMsgEn,
+    },
+    myLang: {
+        myMsgKey: myMsgInMyLang,
+    },
+})
+
+// from here onwards you can use your new message from anywhere
+msg := messages.Messages.Get(myLang, myMsgKey)
+```
+
+You could also do something similar in case you want to just add a new language to the existing default messages.
+For instance:
+
+```go
+newLang := languages.Language("ES_LA")
+
+messages.Messages.Update(messages.LocalizedMessages{
+    newLang: {
+        messages.MsgKey__MandatoryField: "Campo obligatorio",
+        messages.MsgKey__InvalidFormat: "Formato no válido",
+        messages.MsgKey__UniqueList: "Los valores en la lista deben ser únicos",
+    },
+})
+
+// mandatory field message in ES_LA
+msg1 := messages.MandatoryFieldMsg(newLang) 
+
+// invalid format message in ES_LA
+msg2 := messages.InvalidFormatMsg(newLang) 
+
+// illogial dates message in PT_BR, because it has not been found in the ES_LA messages
+msg3 := messages.IlogicalDatesMsg(newLang) 
+```
+
+
 
 ## Creating your own rules
 
@@ -160,7 +226,9 @@ MyCustomRule := &safe.RuleSet{
     RuleName: "my own rule!", // this is used only for pretty printing, like fmt.Println("%s", rs)
     MessageFunc: func(rs *safe.RuleSet) string {
         // here, you can return a message for when the input is not valid
-        return fmt.Sprintf("why did you input %v? please colaborate", rs.FieldValue)
+        // in case you create your own custom messages, this is the place where you could use them,
+        // passing rs.Language as input
+        return fmt.Sprintf("why did you input %v?", rs.FieldValue)
     },
     ValidateFunc: func(rs *safe.RuleSet) bool {
         // in this function, you may perform any validation you want!

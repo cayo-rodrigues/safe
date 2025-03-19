@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+
+	"github.com/cayo-rodrigues/safe/constants/languages"
 )
 
 // A slice of fields to be validated.
@@ -59,6 +61,19 @@ func (fields *Fields) SetField(fieldName string, newField *Field) *Fields {
 	}
 
 	*fields = append(*fields, newField)
+
+	return fields
+}
+
+// Sets the language for all field rules
+// 
+// If no language is set, it defaults to languages.PT_BR
+func (fields *Fields) SetLanguage(lang languages.Language) *Fields {
+	for _, f := range *fields {
+		for _, r := range f.Rules {
+			r.Language = lang
+		}
+	}
 
 	return fields
 }

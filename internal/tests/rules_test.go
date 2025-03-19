@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/cayo-rodrigues/safe"
+	"github.com/cayo-rodrigues/safe/messages"
 )
 
 func TestRequiredRule(t *testing.T) {
@@ -21,7 +22,7 @@ func TestRequiredRule(t *testing.T) {
 	}
 	okValues := []any{"a", -1}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MandatoryFieldMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MandatoryFieldMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -41,7 +42,7 @@ func TestEmailRule(t *testing.T) {
 	}
 	okValues := []any{"qqq@aaa.zzz"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -64,7 +65,7 @@ func TestPhoneRule(t *testing.T) {
 		"+5535999445678",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -86,7 +87,7 @@ func TestCpfRule(t *testing.T) {
 		"393.546.320-09",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -108,7 +109,7 @@ func TestCnpjRule(t *testing.T) {
 		"11789602000196",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -134,7 +135,7 @@ func TestCpfCnpjRule(t *testing.T) {
 		"738.691.910-74",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -157,7 +158,7 @@ func TestCEPRule(t *testing.T) {
 		"49001-084",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -186,7 +187,7 @@ func TestStrongPasswordRule(t *testing.T) {
 		"$S3nh4Mu1iT0__F)rt3!",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.WeakPasswordMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.WeakPasswordMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -213,7 +214,7 @@ func TestUUIDstrRule(t *testing.T) {
 		"018a3345-6bdf-7e47-8080-060d2f507b6e", // v7
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -241,7 +242,7 @@ func TestNoWhitespaceRule(t *testing.T) {
 		"bobo___bobo___amendobobo-ye-ah-!",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -264,7 +265,7 @@ func TestUniqueListRule(t *testing.T) {
 		[]any{1, 2, 3.333},
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UniqueListMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.UniqueListMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -277,7 +278,7 @@ func TestMatchRule(t *testing.T) {
 	invalidValues := []*invalidValue{}
 	okValues := []any{"literaly anything"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 
 	fieldData.Rules = safe.Rules{safe.Match(safe.AddressNumberRegex)}
@@ -295,7 +296,7 @@ func TestMatchRule(t *testing.T) {
 		"S/n",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -310,7 +311,7 @@ func TestMatchListRule(t *testing.T) {
 		[]string{"literaly anything", "whatever"},
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 
 	fieldData.Rules = safe.Rules{safe.MatchList(safe.AddressNumberRegex)}
@@ -322,7 +323,7 @@ func TestMatchListRule(t *testing.T) {
 		[]string{"231", "s/n", "S/N", "s/N", "S/n"},
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.InvalidFormatMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -343,7 +344,7 @@ func TestMinRule(t *testing.T) {
 	}
 	okValues := []any{5, 6}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MinValueMsg(minValue))
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MinValueMsg(minValue))
 	testFieldWithOkValues(fieldData, okValues, t)
 
 	invalidValues = []*invalidValue{
@@ -354,7 +355,7 @@ func TestMinRule(t *testing.T) {
 	}
 	okValues = []any{"pineapple", "apple", "abcdef"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MinCharsMsg(minValue))
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MinCharsMsg(minValue))
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -373,7 +374,7 @@ func TestMaxRule(t *testing.T) {
 	}
 	okValues := []any{0, 0.5, 0.999, -1, -100}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MaxValueMsg(maxValue))
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MaxValueMsg(maxValue))
 	testFieldWithOkValues(fieldData, okValues, t)
 
 	invalidValues = []*invalidValue{
@@ -384,7 +385,7 @@ func TestMaxRule(t *testing.T) {
 	}
 	okValues = []any{"p", "a", "1", "", " "}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MaxCharsMsg(maxValue))
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MaxCharsMsg(maxValue))
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -406,7 +407,7 @@ func TestOneOfRule(t *testing.T) {
 	}
 	okValues := []any{"1", "abc", 99.9, 123}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.UnacceptableValueMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -424,7 +425,7 @@ func TestNotOneOfRule(t *testing.T) {
 	}
 	okValues := []any{"1.000001", 123.00001, 100, 99.99, "1 ", "ab", " abc", 99.8}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.UnacceptableValueMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -445,7 +446,7 @@ func TestRequiredUnlessRule(t *testing.T) {
 	}
 	okValues := []any{"anything non-zero value", 1, true, time.Now()}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.MandatoryFieldMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MandatoryFieldMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 
 	fieldData.Rules = safe.Rules{safe.RequiredUnless("", nil, 0, struct{}{}, 0.01)}
@@ -479,7 +480,7 @@ func TestAfterRule(t *testing.T) {
 		now.Add(time.Microsecond),
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.IlogicalDatesMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.IlogicalDatesMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -507,7 +508,7 @@ func TestNotAfterRule(t *testing.T) {
 		now.Add(-time.Microsecond),
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.IlogicalDatesMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.IlogicalDatesMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -535,7 +536,7 @@ func TestBeforeRule(t *testing.T) {
 		now.Add(-time.Microsecond),
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.IlogicalDatesMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.IlogicalDatesMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -563,7 +564,7 @@ func TestNotBeforeRule(t *testing.T) {
 		now.Add(time.Microsecond),
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.IlogicalDatesMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.IlogicalDatesMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -651,7 +652,7 @@ func TestEqualToRule(t *testing.T) {
 		":) ",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.UnacceptableValueMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 
 	fieldData.Rules = safe.Rules{safe.EqualTo("")}
@@ -665,7 +666,7 @@ func TestEqualToRule(t *testing.T) {
 		"",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.UnacceptableValueMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
@@ -686,7 +687,7 @@ func TestNotEqualToRule(t *testing.T) {
 		";( ",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.UnacceptableValueMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 
 	fieldData.Rules = safe.Rules{safe.NotEqualTo("")}
@@ -700,7 +701,7 @@ func TestNotEqualToRule(t *testing.T) {
 		"\\0",
 	}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, safe.UnacceptableValueMsg)
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.UnacceptableValueMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 

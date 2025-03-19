@@ -5,6 +5,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/cayo-rodrigues/safe"
+	"github.com/cayo-rodrigues/safe/messages"
 )
 
 func TestValidationSuccess(t *testing.T) {
@@ -33,7 +34,7 @@ func TestValidationFailure(t *testing.T) {
 	maxNameChars := utf8.RuneCountInString(user.Name) - 1
 	minAge := 18
 
-	expectedNameErrMsg := safe.MaxCharsMsg(maxNameChars)
+	expectedNameErrMsg := messages.MaxCharsMsg(maxNameChars)
 	expectedAgeErrMsg := "Your beard doesn't fool me!"
 
 	fields := sampleFields(user)
@@ -56,20 +57,20 @@ func TestValidationFailure(t *testing.T) {
 		if msg := errs["age"]; msg != expectedAgeErrMsg {
 			t.Errorf("Expected age error message: \"%s\". Got: \"%s\"", expectedAgeErrMsg, msg)
 		}
-		if msg := errs["address_city"]; msg != safe.MandatoryFieldMsg {
-			t.Errorf("Expected address_city error message: \"%s\". Got: \"%s\"", safe.MandatoryFieldMsg, msg)
+		if msg := errs["address_city"]; msg != messages.MandatoryFieldMsg() {
+			t.Errorf("Expected address_city error message: \"%s\". Got: \"%s\"", messages.MandatoryFieldMsg(), msg)
 		}
-		if msg := errs["address_state"]; msg != safe.MandatoryFieldMsg {
-			t.Errorf("Expected address_state error message: \"%s\". Got: \"%s\"", safe.MandatoryFieldMsg, msg)
+		if msg := errs["address_state"]; msg != messages.MandatoryFieldMsg() {
+			t.Errorf("Expected address_state error message: \"%s\". Got: \"%s\"", messages.MandatoryFieldMsg(), msg)
 		}
-		if msg := errs["job"]; msg != safe.UnacceptableValueMsg {
-			t.Errorf("Expected job error message: \"%s\". Got: \"%s\"", safe.UnacceptableValueMsg, msg)
+		if msg := errs["job"]; msg != messages.UnacceptableValueMsg() {
+			t.Errorf("Expected job error message: \"%s\". Got: \"%s\"", messages.UnacceptableValueMsg(), msg)
 		}
-		if msg := errs["password"]; msg != safe.WeakPasswordMsg {
-			t.Errorf("Expected password error message: \"%s\". Got: \"%s\"", safe.WeakPasswordMsg, msg)
+		if msg := errs["password"]; msg != messages.WeakPasswordMsg() {
+			t.Errorf("Expected password error message: \"%s\". Got: \"%s\"", messages.WeakPasswordMsg(), msg)
 		}
-		if msg := errs["cpf/cnpj"]; msg != safe.InvalidFormatMsg {
-			t.Errorf("Expected cpf/cnpj error message: \"%s\". Got: \"%s\"", safe.InvalidFormatMsg, msg)
+		if msg := errs["cpf/cnpj"]; msg != messages.InvalidFormatMsg() {
+			t.Errorf("Expected cpf/cnpj error message: \"%s\". Got: \"%s\"", messages.InvalidFormatMsg(), msg)
 		}
 	}
 }

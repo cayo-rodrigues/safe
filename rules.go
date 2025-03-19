@@ -5,6 +5,9 @@ import (
 	"strings"
 	"time"
 	"unicode/utf8"
+
+	"github.com/cayo-rodrigues/safe/constants/languages"
+	"github.com/cayo-rodrigues/safe/messages"
 )
 
 type Rules []*RuleSet
@@ -35,6 +38,7 @@ type RuleSet struct {
 	FieldValue   any
 	MessageFunc  func(*RuleSet) string
 	ValidateFunc func(*RuleSet) bool
+	Language     languages.Language
 }
 
 // Modifies a default message from a RuleSet, effectively letting you provide your own custom error messages.
@@ -90,7 +94,7 @@ func Required() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Required",
 		MessageFunc: func(rs *RuleSet) string {
-			return MandatoryFieldMsg
+			return messages.MandatoryFieldMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			return HasValue(rs.FieldValue)
@@ -103,7 +107,7 @@ func True() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.True",
 		MessageFunc: func(rs *RuleSet) string {
-			return MandatoryFieldMsg
+			return messages.MandatoryFieldMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			boolean, ok := rs.FieldValue.(bool)
@@ -120,7 +124,7 @@ func False() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.False",
 		MessageFunc: func(rs *RuleSet) string {
-			return MandatoryFieldMsg
+			return messages.MandatoryFieldMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			boolean, ok := rs.FieldValue.(bool)
@@ -137,7 +141,7 @@ func Email() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Email",
 		MessageFunc: func(rs *RuleSet) string {
-			return InvalidFormatMsg
+			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			str, ok := rs.FieldValue.(string)
@@ -162,7 +166,7 @@ func Phone() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Phone",
 		MessageFunc: func(rs *RuleSet) string {
-			return InvalidFormatMsg
+			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			str, ok := rs.FieldValue.(string)
@@ -186,7 +190,7 @@ func Cpf() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Cpf",
 		MessageFunc: func(rs *RuleSet) string {
-			return InvalidFormatMsg
+			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			str, ok := rs.FieldValue.(string)
@@ -210,7 +214,7 @@ func Cnpj() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Cnpj",
 		MessageFunc: func(rs *RuleSet) string {
-			return InvalidFormatMsg
+			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			str, ok := rs.FieldValue.(string)
@@ -234,7 +238,7 @@ func CpfCnpj() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.CpfCnpj",
 		MessageFunc: func(rs *RuleSet) string {
-			return InvalidFormatMsg
+			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			str, ok := rs.FieldValue.(string)
@@ -256,7 +260,7 @@ func CEP() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.CEP",
 		MessageFunc: func(rs *RuleSet) string {
-			return InvalidFormatMsg
+			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			str, ok := rs.FieldValue.(string)
@@ -280,7 +284,7 @@ func StrongPassword() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.StrongPassword",
 		MessageFunc: func(rs *RuleSet) string {
-			return WeakPasswordMsg
+			return messages.WeakPasswordMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			pwd, ok := rs.FieldValue.(string)
@@ -307,7 +311,7 @@ func UUIDstr() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.UUIDstr",
 		MessageFunc: func(rs *RuleSet) string {
-			return InvalidFormatMsg
+			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			uuid, ok := rs.FieldValue.(string)
@@ -331,7 +335,7 @@ func NoWhitespace() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.NoWhitespaces",
 		MessageFunc: func(rs *RuleSet) string {
-			return InvalidFormatMsg
+			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			str, ok := rs.FieldValue.(string)
@@ -373,7 +377,7 @@ func UniqueList[T comparable]() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.UniqueList",
 		MessageFunc: func(rs *RuleSet) string {
-			return UniqueListMsg
+			return messages.UniqueListMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			vals, ok := rs.FieldValue.([]T)
@@ -395,7 +399,7 @@ func Match(regexes ...*regexp.Regexp) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Match",
 		MessageFunc: func(rs *RuleSet) string {
-			return InvalidFormatMsg
+			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			str, ok := rs.FieldValue.(string)
@@ -425,7 +429,7 @@ func MatchList(regexes ...*regexp.Regexp) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.MatchList",
 		MessageFunc: func(rs *RuleSet) string {
-			return InvalidFormatMsg
+			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			if rs.FieldValue == nil {
@@ -467,9 +471,9 @@ func Min(minValue int) *RuleSet {
 		MessageFunc: func(rs *RuleSet) string {
 			switch rs.FieldValue.(type) {
 			case int, float32, float64:
-				return MinValueMsg(minValue)
+				return messages.MinValueMsg(minValue, rs.Language)
 			default:
-				return MinCharsMsg(minValue)
+				return messages.MinCharsMsg(minValue, rs.Language)
 			}
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
@@ -504,9 +508,9 @@ func Max(maxValue int) *RuleSet {
 		MessageFunc: func(rs *RuleSet) string {
 			switch rs.FieldValue.(type) {
 			case int, float32, float64:
-				return MaxValueMsg(maxValue)
+				return messages.MaxValueMsg(maxValue, rs.Language)
 			default:
-				return MaxCharsMsg(maxValue)
+				return messages.MaxCharsMsg(maxValue, rs.Language)
 			}
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
@@ -554,7 +558,7 @@ func OneOf[T comparable](vals []T) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.OneOf",
 		MessageFunc: func(rs *RuleSet) string {
-			return UnacceptableValueMsg
+			return messages.UnacceptableValueMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			for _, val := range vals {
@@ -573,7 +577,7 @@ func NotOneOf[T comparable](vals []T) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.NotOneOf",
 		MessageFunc: func(rs *RuleSet) string {
-			return UnacceptableValueMsg
+			return messages.UnacceptableValueMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			for _, val := range vals {
@@ -612,7 +616,7 @@ func RequiredUnless(vals ...any) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.RequiredUnless",
 		MessageFunc: func(rs *RuleSet) string {
-			return MandatoryFieldMsg
+			return messages.MandatoryFieldMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			if HasValue(rs.FieldValue) {
@@ -634,7 +638,7 @@ func After(dt time.Time) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.After",
 		MessageFunc: func(rs *RuleSet) string {
-			return IlogicalDatesMsg
+			return messages.IlogicalDatesMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			switch val := rs.FieldValue.(type) {
@@ -653,7 +657,7 @@ func NotAfter(dt time.Time) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.NotAfter",
 		MessageFunc: func(rs *RuleSet) string {
-			return IlogicalDatesMsg
+			return messages.IlogicalDatesMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			switch val := rs.FieldValue.(type) {
@@ -672,7 +676,7 @@ func Before(dt time.Time) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Before",
 		MessageFunc: func(rs *RuleSet) string {
-			return IlogicalDatesMsg
+			return messages.IlogicalDatesMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			switch val := rs.FieldValue.(type) {
@@ -691,7 +695,7 @@ func NotBefore(dt time.Time) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.NotBefore",
 		MessageFunc: func(rs *RuleSet) string {
-			return IlogicalDatesMsg
+			return messages.IlogicalDatesMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			switch val := rs.FieldValue.(type) {
@@ -712,7 +716,7 @@ func MaxDaysRange(dt time.Time, maxDays int) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.MaxDaysRange",
 		MessageFunc: func(rs *RuleSet) string {
-			return MaxDaysRangeMsg(maxDays)
+			return messages.MaxDaysRangeMsg(maxDays, rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			switch val := rs.FieldValue.(type) {
@@ -736,7 +740,7 @@ func EqualTo[T comparable](value T) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.EqualTo",
 		MessageFunc: func(rs *RuleSet) string {
-			return UnacceptableValueMsg
+			return messages.UnacceptableValueMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			return rs.FieldValue == value
@@ -749,7 +753,7 @@ func NotEqualTo[T comparable](value T) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.NotEqualTo",
 		MessageFunc: func(rs *RuleSet) string {
-			return UnacceptableValueMsg
+			return messages.UnacceptableValueMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			return rs.FieldValue != value
