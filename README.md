@@ -215,6 +215,23 @@ msg2 := messages.InvalidFormatMsg(newLang)
 msg3 := messages.IlogicalDatesMsg(newLang) 
 ```
 
+## Changing the default language
+
+The default language is `languages.PT_BR`. To change it, do:
+
+```go
+messages.DefaultLang = languages.EN_US
+```
+
+You could also set it to some other language if you want:
+
+```go
+myLang := languages.Language("ES_LA")
+messages.DefaultLang = myLang
+```
+
+But in this case, remember that you must ensure that all messages have a fallback in `myLang`.
+In case no message is found in any language at all, the final fallback is `"T^T"`. It will not panic.
 
 
 ## Creating your own rules

@@ -55,6 +55,13 @@ func TestLocalizedMessages(t *testing.T) {
 		t.Fatalf("Expected message in lang '%s' to fallback to '%s', got '%s'", myLang, otherMsgPt, got)
 	}
 
+	messages.DefaultLang = languages.EN_US
+
+	got = messages.Messages.Get(myLang, someOtherMsgKey)
+	if got != otherMsgEn {
+		t.Fatalf("Expected message in lang '%s' to fallback to '%s', got '%s'", myLang, otherMsgEn, got)
+	}
+
 	got = messages.Messages.Get(myLang, unusedKey)
 	expected := "T^T"
 	if got != expected {
@@ -63,6 +70,8 @@ func TestLocalizedMessages(t *testing.T) {
 }
 
 func TestMessagesShortcuts(t *testing.T) {
+	messages.DefaultLang = languages.DEFAULT
+
 	simpleShortcuts := map[messages.MessageKey]SimpleShortcut{
 		messages.MsgKey__MandatoryField:    messages.MandatoryFieldMsg,
 		messages.MsgKey__ValueTooLong:      messages.ValueTooLongMsg,

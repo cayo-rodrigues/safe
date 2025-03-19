@@ -67,7 +67,7 @@ func (fields *Fields) SetField(fieldName string, newField *Field) *Fields {
 
 // Sets the language for all field rules
 // 
-// If no language is set, it defaults to languages.PT_BR
+// If no language is set, it defaults to messages.DefaultLang
 func (fields *Fields) SetLanguage(lang languages.Language) *Fields {
 	for _, f := range *fields {
 		for _, r := range f.Rules {

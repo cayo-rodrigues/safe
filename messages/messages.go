@@ -65,7 +65,7 @@ func (m LocalizedMessages) Get(lang languages.Language, key MessageKey, fmtArgs 
 		}
 	}
 
-	if msgInDefaultLang, ok := Messages[languages.PT_BR][key]; ok {
+	if msgInDefaultLang, ok := Messages[DefaultLang][key]; ok {
 		if len(fmtArgs) > 0 {
 			return fmt.Sprintf(msgInDefaultLang, fmtArgs...)
 		} else {
@@ -75,6 +75,15 @@ func (m LocalizedMessages) Get(lang languages.Language, key MessageKey, fmtArgs 
 
 	return "T^T"
 }
+
+// Default language to be used as fallback if no language is set directly, or if no message is found
+// when looking for a message key.
+//
+// You are free to change this value
+//
+// In case no message is found even in the default language, the final fallback is "T^T".
+// It will not panic.
+var DefaultLang = languages.DEFAULT
 
 // Messages used by the rule sets. They are available in languages.PT_BR and languages.EN_US.
 //
