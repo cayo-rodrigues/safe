@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/cayo-rodrigues/safe/constants/languages"
 )
@@ -51,6 +52,45 @@ func (fields *Fields) SetValue(fieldName string, value any) *Fields {
 	return fields
 }
 
+// Set values for multiple fields. This will overwrite the existing values in the fields.
+//
+// The key is the field.Name and the value is the new value to be assigned.
+// Example usage:
+//
+//	fields := safe.Fields{
+//		{
+//			Name: "field_1",
+//			Value: "field_1_value",
+//			Rules: safe.Rules{...},
+//		},
+//		{
+//			Name: "field_2",
+//			Value: "field_2_value",
+//			Rules: safe.Rules{...},
+//		},
+//		{
+//			Name: "field_3",
+//			Value: "field_3_value",
+//			Rules: safe.Rules{...},
+//		},
+//	}
+//	fields.SetValues(map[string]any{
+//		"field_1":    "another_value_for_field_1",
+//		"field_2":    "another_value_for_field_2",
+//		"field_3":    "another_value_for_field_3",
+//	})
+func (fields *Fields) SetValues(values map[string]any) *Fields {
+	for _, f := range *fields {
+		value, ok := values[f.Name]
+		if !ok {
+			continue
+		}
+		f.Value = value
+	}
+
+	return fields
+}
+
 // Create a new field or update an existing field.
 func (fields *Fields) SetField(fieldName string, newField *Field) *Fields {
 	for _, f := range *fields {
@@ -66,7 +106,7 @@ func (fields *Fields) SetField(fieldName string, newField *Field) *Fields {
 }
 
 // Sets the language for all field rules
-// 
+//
 // If no language is set, it defaults to messages.DefaultLang
 func (fields *Fields) SetLanguage(lang languages.Language) *Fields {
 	for _, f := range *fields {
@@ -76,6 +116,21 @@ func (fields *Fields) SetLanguage(lang languages.Language) *Fields {
 	}
 
 	return fields
+}
+
+func (fields *Fields) String() string {
+	builder := strings.Builder{}
+
+	builder.WriteString("Fields {\n")
+
+	for _, f := range *fields {
+		builder.WriteString("\t")
+		builder.WriteString(f.String())
+		builder.WriteString("\n")
+	}
+
+	builder.WriteString("}")
+	return builder.String()
 }
 
 // An individual Field to be validated.

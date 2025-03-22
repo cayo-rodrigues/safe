@@ -123,7 +123,7 @@ func TestInsertStuffService(t *testing.T) {
     }
     output := services.InsertStuffService(&input)
 
-    expectedOutputConditions := safe.Fields{
+    outputShape := safe.Fields{
         {
             Name: "output_ID",
             Value: output.ID,
@@ -146,9 +146,9 @@ func TestInsertStuffService(t *testing.T) {
         }
     }
 
-    errors, ok := safe.Validate(expectedOutputConditions)
+    errors, ok := safe.Validate(outputShape)
     if !ok {
-        t.Fatalf("Output does not match expected conditions: %s", errors)
+        t.Fatalf("Output does not match expected conditions.\nerrors: %s\nvalue: %s", errors, outputShape)
     }
 }
 

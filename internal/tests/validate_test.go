@@ -50,27 +50,25 @@ func TestValidationFailure(t *testing.T) {
 		t.Errorf("User should not be valid and should have error messages.\nValid: %v.\nError Messages: %s.\nFields -> %s", ok, errs, fields)
 	}
 
-	if errs != nil {
-		if msg := errs["name"]; msg != expectedNameErrMsg {
-			t.Errorf("Expected name error message: \"%s\". Got: \"%s\"", expectedNameErrMsg, msg)
-		}
-		if msg := errs["age"]; msg != expectedAgeErrMsg {
-			t.Errorf("Expected age error message: \"%s\". Got: \"%s\"", expectedAgeErrMsg, msg)
-		}
-		if msg := errs["address_city"]; msg != messages.MandatoryFieldMsg() {
-			t.Errorf("Expected address_city error message: \"%s\". Got: \"%s\"", messages.MandatoryFieldMsg(), msg)
-		}
-		if msg := errs["address_state"]; msg != messages.MandatoryFieldMsg() {
-			t.Errorf("Expected address_state error message: \"%s\". Got: \"%s\"", messages.MandatoryFieldMsg(), msg)
-		}
-		if msg := errs["job"]; msg != messages.UnacceptableValueMsg() {
-			t.Errorf("Expected job error message: \"%s\". Got: \"%s\"", messages.UnacceptableValueMsg(), msg)
-		}
-		if msg := errs["password"]; msg != messages.WeakPasswordMsg() {
-			t.Errorf("Expected password error message: \"%s\". Got: \"%s\"", messages.WeakPasswordMsg(), msg)
-		}
-		if msg := errs["cpf/cnpj"]; msg != messages.InvalidFormatMsg() {
-			t.Errorf("Expected cpf/cnpj error message: \"%s\". Got: \"%s\"", messages.InvalidFormatMsg(), msg)
-		}
+	if msg := errs["name"]; msg != expectedNameErrMsg {
+		t.Errorf("Expected name error message: \"%s\". Got: \"%s\"", expectedNameErrMsg, msg)
+	}
+	if msg := errs["age"]; msg != expectedAgeErrMsg {
+		t.Errorf("Expected age error message: \"%s\". Got: \"%s\"", expectedAgeErrMsg, msg)
+	}
+	if msg := errs["address_city"]; msg != messages.MandatoryFieldMsg() {
+		t.Errorf("Expected address_city error message: \"%s\". Got: \"%s\"", messages.MandatoryFieldMsg(), msg)
+	}
+	if msg := errs["address_state"]; msg != messages.MandatoryFieldMsg() {
+		t.Errorf("Expected address_state error message: \"%s\". Got: \"%s\"", messages.MandatoryFieldMsg(), msg)
+	}
+	if msg := errs["job"]; msg != messages.UnacceptableValueMsg() {
+		t.Errorf("Expected job error message: \"%s\". Got: \"%s\"", messages.UnacceptableValueMsg(), msg)
+	}
+	if msg := errs["password"]; msg != messages.WeakPasswordMsg() {
+		t.Errorf("Expected password error message: \"%s\". Got: \"%s\"", messages.WeakPasswordMsg(), msg)
+	}
+	if msg := errs["cpf/cnpj"]; msg != messages.InvalidFormatMsg() {
+		t.Errorf("Expected cpf/cnpj error message: \"%s\". Got: \"%s\"", messages.InvalidFormatMsg(), msg)
 	}
 }
