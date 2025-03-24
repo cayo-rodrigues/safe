@@ -449,9 +449,36 @@ func TestRequiredUnlessRule(t *testing.T) {
 	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MandatoryFieldMsg())
 	testFieldWithOkValues(fieldData, okValues, t)
 
-	fieldData.Rules = safe.Rules{safe.RequiredUnless("", nil, 0, struct{}{}, 0.01)}
+	fieldData.Rules = safe.Rules{safe.RequiredUnless("", nil, 0, struct{}{}, 0.01)} // field is no longer required
 
 	okValues = []any{"", 0, " ", nil, 1000, "anything", time.Now(), time.Time{}}
+
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestRequiredIfRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "required if",
+		Rules: safe.Rules{safe.RequiredIf(nil, 0, "i have a value, so the field is required", true, " ")},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: ""},
+		{Val: 0},
+		{Val: 0.000},
+		{Val: nil},
+		{Val: false},
+		{Val: time.Time{}},
+		{Val: struct{}{}},
+	}
+	okValues := []any{"anything non-zero value", 1, true, time.Now()}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MandatoryFieldMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	fieldData.Rules = safe.Rules{safe.RequiredIf("", nil, 0, struct{}{}, 0.000)} // field is no longer required
+
+	okValues = []any{"", 0, " ", nil, 1000, "anything", time.Now(), time.Time{}, struct{}{}}
 
 	testFieldWithOkValues(fieldData, okValues, t)
 }
@@ -702,6 +729,268 @@ func TestNotEqualToRule(t *testing.T) {
 	}
 
 	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.UnacceptableValueMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestGreaterThanRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "greater_than",
+		Rules: safe.Rules{safe.GreaterThan(50)},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: 50},
+		{Val: 49},
+		{Val: 49.5},
+		{Val: 49.999},
+		{Val: 50 - 0.0000001},
+		{Val: 1},
+		{Val: 0},
+		{Val: -1},
+		{Val: -50},
+		{Val: -100},
+	}
+	okValues := []any{
+		51,
+		50.5,
+		50.0000001,
+		100,
+		1000,
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.GreaterThanMsg(50))
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestGreaterThanOrEqualToRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "greater_than_or_equal_to",
+		Rules: safe.Rules{safe.GreaterThanOrEqualTo(50)},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: 49},
+		{Val: 49.5},
+		{Val: 49.999},
+		{Val: 50 - 0.0000001},
+		{Val: 1},
+		{Val: 0},
+		{Val: -1},
+		{Val: -50},
+		{Val: -100},
+	}
+	okValues := []any{
+		50,
+		51,
+		50.5,
+		50.0000001,
+		100,
+		1000,
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.GreaterThanOrEqualToMsg(50))
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestLessThanRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "less_than",
+		Rules: safe.Rules{safe.LessThan(50)},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: 50},
+		{Val: 51},
+		{Val: 50.5},
+		{Val: 50.000001},
+		{Val: 100},
+	}
+	okValues := []any{
+		50 - 0.00000001,
+		49,
+		49.5,
+		49.9999999999999,
+		1,
+		0,
+		-1,
+		-50,
+		-100,
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.LessThanMsg(50))
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestLessThanOrEqualToRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "less_than_or_equal_to",
+		Rules: safe.Rules{safe.LessThanOrEqualTo(50)},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: 51},
+		{Val: 50.5},
+		{Val: 50.000001},
+		{Val: 100},
+	}
+	okValues := []any{
+		50,
+		50 - 0.00000001,
+		49,
+		49.5,
+		49.9999999999999,
+		1,
+		0,
+		-1,
+		-50,
+		-100,
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.LessThanOrEqualToMsg(50))
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestContainsRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "contains",
+		Rules: safe.Rules{safe.Contains("apple")},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: "microsoft"},
+		{Val: "appl3"},
+		{Val: "4pple"},
+		{Val: "pine a pple"},
+		{Val: 0},
+		{Val: nil},
+	}
+	okValues := []any{
+		"apple",
+		"   apple ",
+		"pineapple",
+		"an apple a day keeps the doctor away",
+		"anappletment",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.ContainsMsg("apple"))
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestNotContainsRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "not_contains",
+		Rules: safe.Rules{safe.NotContains("apple")},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: "apple"},
+		{Val: "   apple "},
+		{Val: "pineapple"},
+		{Val: "an apple a day keeps the doctor away"},
+		{Val: "anappletment"},
+		{Val: 0},
+		{Val: nil},
+	}
+	okValues := []any{
+		"microsoft",
+		"appl3",
+		"4pple",
+		"pine a pple",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.NotContainsMsg("apple"))
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestContainsAllRule(t *testing.T) {
+	expectedExpressions := []string{"apple", "banana", "batman", "pepsiman"}
+
+	fieldData := &safe.Field{
+		Name:  "contains_all",
+		Rules: safe.Rules{safe.ContainsAll(expectedExpressions...)},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: "microsoft"},
+		{Val: "appl3"},
+		{Val: "4pple"},
+		{Val: "pine a pple"},
+		{Val: 0},
+		{Val: nil},
+		{Val: "apple"},
+		{Val: "apple banana"},
+		{Val: "batmanpepsiman applenana"},
+		{Val: "bananananana"},
+	}
+	okValues := []any{
+		"batman threw a banana in pepsiman while he was eating an apple",
+		"pepsiman tried to get away with a banana and an apple, but batman catch him up",
+		"pepsiman and batman are running from a giant pineapple in a slipery banana field",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.ContainsAllMsg(expectedExpressions))
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestContainsSomeRule(t *testing.T) {
+	expectedExpressions := []string{"apple", "banana", "batman", "pepsiman"}
+
+	fieldData := &safe.Field{
+		Name:  "contains_all",
+		Rules: safe.Rules{safe.ContainsSome(expectedExpressions...)},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: "microsoft"},
+		{Val: "appl3"},
+		{Val: "4pple"},
+		{Val: "pine a pple"},
+		{Val: 0},
+		{Val: nil},
+	}
+	okValues := []any{
+		"batman threw a banana in pepsiman while he was eating an apple",
+		"pepsiman tried to get away with a banana and an apple, but batman catch him up",
+		"pepsiman and batman are running from a giant pineapple in a slipery banana field",
+		"apple",
+		"apple banana",
+		"batmanpepsiman applenana",
+		"bananananana",
+		"pineapple",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.ContainsSomeMsg(expectedExpressions))
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestContainsNoneRule(t *testing.T) {
+	expressionsToAvoid := []string{"apple", "banana", "batman", "pepsiman"}
+
+	fieldData := &safe.Field{
+		Name:  "contains_none",
+		Rules: safe.Rules{safe.ContainsNone(expressionsToAvoid...)},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: "batman threw a banana in pepsiman while he was eating an apple"},
+		{Val: "pepsiman tried to get away with a banana and an apple, but batman catch him up"},
+		{Val: "pepsiman and batman are running from a giant pineapple in a slipery banana field"},
+		{Val: "apple"},
+		{Val: "apple banana"},
+		{Val: "batmanpepsiman applenana"},
+		{Val: "bananananana"},
+		{Val: "pineapple"},
+		{Val: 0},
+		{Val: nil},
+	}
+	okValues := []any{
+		"microsoft",
+		"appl3",
+		"4pple",
+		"pine a pple",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.ContainsNoneMsg(expressionsToAvoid))
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 

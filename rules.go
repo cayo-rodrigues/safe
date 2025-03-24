@@ -622,12 +622,44 @@ func RequiredUnless(vals ...any) *RuleSet {
 			if HasValue(rs.FieldValue) {
 				return true
 			}
-			for _, val := range vals {
-				if HasValue(val) {
-					return true
-				}
+			return Some(vals...)
+		},
+	}
+
+}
+
+// The field is not required by default.
+//
+// However, if any of the provided vals are valid (meaning, if at least of one them have no zero value),
+// then the field becomes required.
+//
+// Example usage:
+//
+//	fields := safe.Fields{
+//		{
+//			Name: "Email",
+//			Value: user.Email,
+//			Rules: safe.Rules{safe.Email(), safe.Max(128), safe.RequiredIf(user.Username)},
+//		},
+//		{
+//			Name: "Username",
+//			Value: user.Username,
+//			Rules: safe.Rules{safe.Max(128), safe.Min(3)},
+//		},
+//	}
+//
+// In the example above, email is required only when username is provided.
+func RequiredIf(vals ...any) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.RequiredIf",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.MandatoryFieldMsg(rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			if HasValue(rs.FieldValue) {
+				return true
 			}
-			return false
+			return None(vals...)
 		},
 	}
 
@@ -757,6 +789,224 @@ func NotEqualTo[T comparable](value T) *RuleSet {
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
 			return rs.FieldValue != value
+		},
+	}
+}
+
+// The field value must be like T, either an int, a float64 or a float32
+//
+// The value of the field must be greater than n
+func GreaterThan[T int | float64 | float32](n T) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.GreaterThan",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.GreaterThanMsg(n, rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			fieldVal, ok := AnyToFloat64(rs.FieldValue)
+			if !ok {
+				return false
+			}
+
+			return fieldVal > float64(n)
+		},
+	}
+}
+
+// The field value must be like T, either an int, a float64 or a float32
+//
+// The value of the field must be greater than or equal to n
+func GreaterThanOrEqualTo[T int | float64 | float32](n T) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.GreaterThanOrEqualTo",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.GreaterThanOrEqualToMsg(n, rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			fieldVal, ok := AnyToFloat64(rs.FieldValue)
+			if !ok {
+				return false
+			}
+
+			return fieldVal >= float64(n)
+		},
+	}
+}
+
+// The field value must be like T, either an int, a float64 or a float32
+//
+// The value of the field must be less than n
+func LessThan[T int | float64 | float32](n T) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.LessThan",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.LessThanMsg(n, rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			fieldVal, ok := AnyToFloat64(rs.FieldValue)
+			if !ok {
+				return false
+			}
+
+			return fieldVal < float64(n)
+		},
+	}
+}
+
+// The field value must be like T, either an int, a float64 or a float32
+//
+// The value of the field must be greater than or equal to n
+func LessThanOrEqualTo[T int | float64 | float32](n T) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.LessThanOrEqualTo",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.LessThanOrEqualToMsg(n, rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			fieldVal, ok := AnyToFloat64(rs.FieldValue)
+			if !ok {
+				return false
+			}
+
+			return fieldVal <= float64(n)
+		},
+	}
+}
+
+// The field value must be of type string
+//
+// The value of the field must contain substr
+func Contains(substr string) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.Contains",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.ContainsMsg(substr, rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.FieldValue.(string)
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			return strings.Contains(str, substr)
+		},
+	}
+}
+
+// The field value must be of type string
+//
+// The value of the field must not contain substr
+func NotContains(substr string) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.NotContains",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.NotContainsMsg(substr, rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.FieldValue.(string)
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			return !strings.Contains(str, substr)
+		},
+	}
+}
+
+// The field value must be of type string
+//
+// The value of the field must contain all substrs.
+//
+// Note that this is different from strings.ContainsAny, because
+// we compare substrings, not unicode code points
+func ContainsAll(substrs ...string) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.ContainsAll",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.ContainsAllMsg(substrs, rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.FieldValue.(string)
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			for _, substr := range substrs {
+				if !strings.Contains(str, substr) {
+					return false
+				}
+			}
+			return true
+		},
+	}
+}
+
+// The field value must be of type string
+//
+// The value of the field must contain at least one of substrs
+func ContainsSome(substrs ...string) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.ContainsSome",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.ContainsSomeMsg(substrs, rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.FieldValue.(string)
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			for _, substr := range substrs {
+				if strings.Contains(str, substr) {
+					return true
+				}
+			}
+			return false
+		},
+	}
+}
+
+// The field value must be of type string
+//
+// None of the substrs should be found in the field value
+func ContainsNone(substrs ...string) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.ContainsNone",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.ContainsNoneMsg(substrs, rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.FieldValue.(string)
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			for _, substr := range substrs {
+				if strings.Contains(str, substr) {
+					return false
+				}
+			}
+			return true
 		},
 	}
 }

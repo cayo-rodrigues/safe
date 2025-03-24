@@ -285,10 +285,13 @@ fields := safe.Fields{
 Safe exposes some helper functions that you can use, whether in the context of validation rules or not. They are:
 
 - `safe.All`
+- `safe.None`
+- `safe.Some`
 - `safe.HasValue`
 - `safe.AllUnique`
 - `safe.IsStrongPassword`
 - `safe.DifferenceInDays`
+- `safe.AnyToFloat64`
 
 Please refer to their individual documentations.
 

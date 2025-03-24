@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/cayo-rodrigues/safe/constants/languages"
+	"github.com/cayo-rodrigues/safe/internal/tests/strhelpers"
 	"github.com/cayo-rodrigues/safe/messages"
 )
 
@@ -88,15 +89,51 @@ func TestMessagesShortcuts(t *testing.T) {
 
 	ceil := 100_000
 
-	shortcutsWithArgs := map[messages.MessageKey]ShortcutWithIntArg{
-		messages.MsgKey__MinValue:     {fn: messages.MinValueMsg, arg: rand.Intn(ceil)},
-		messages.MsgKey__MinChars:     {fn: messages.MinCharsMsg, arg: rand.Intn(ceil)},
-		messages.MsgKey__MaxValue:     {fn: messages.MaxValueMsg, arg: rand.Intn(ceil)},
-		messages.MsgKey__MaxChars:     {fn: messages.MaxCharsMsg, arg: rand.Intn(ceil)},
-		messages.MsgKey__MaxDaysRange: {fn: messages.MaxDaysRangeMsg, arg: rand.Intn(ceil)},
+	shortcutsWithArgs := map[messages.MessageKey]ShortcutWithArg[int]{
+		messages.MsgKey__MinValue:             {fn: messages.MinValueMsg, arg: rand.Intn(ceil)},
+		messages.MsgKey__MinChars:             {fn: messages.MinCharsMsg, arg: rand.Intn(ceil)},
+		messages.MsgKey__MaxValue:             {fn: messages.MaxValueMsg, arg: rand.Intn(ceil)},
+		messages.MsgKey__MaxChars:             {fn: messages.MaxCharsMsg, arg: rand.Intn(ceil)},
+		messages.MsgKey__MaxDaysRange:         {fn: messages.MaxDaysRangeMsg, arg: rand.Intn(ceil)},
+		messages.MsgKey__GreaterThan:          {fn: messages.GreaterThanMsg[int], arg: rand.Intn(ceil)},
+		messages.MsgKey__LessThan:             {fn: messages.LessThanMsg[int], arg: rand.Intn(ceil)},
+		messages.MsgKey__GreaterThanOrEqualTo: {fn: messages.GreaterThanOrEqualToMsg[int], arg: rand.Intn(ceil)},
+		messages.MsgKey__LessThanOrEqualTo:    {fn: messages.LessThanOrEqualToMsg[int], arg: rand.Intn(ceil)},
 	}
 
 	for key, shortcut := range shortcutsWithArgs {
-		performMessageShortcutWithIntArgTest(t, key, shortcut)
+		performMessageShortcutWithArgTest(t, key, shortcut)
+	}
+
+	strLen := 10
+
+	shortcutsWithStrArgs := map[messages.MessageKey]ShortcutWithArg[string]{
+		messages.MsgKey__Contains:    {fn: messages.ContainsMsg, arg: strhelpers.RandStr(strLen)},
+		messages.MsgKey__NotContains: {fn: messages.NotContainsMsg, arg: strhelpers.RandStr(strLen)},
+	}
+
+	for key, shortcut := range shortcutsWithStrArgs {
+		performMessageShortcutWithArgTest(t, key, shortcut)
+	}
+
+	argsCount := 3
+	args := [][]string{}
+
+	for i := 0; i < argsCount; i++ {
+		args = append(args, []string{
+			strhelpers.RandStr(strLen),
+			strhelpers.RandStr(strLen),
+			strhelpers.RandStr(strLen),
+		})
+	}
+
+	shortcutsWithSliceStrArgs := map[messages.MessageKey]ShortcutWithArg[[]string]{
+		messages.MsgKey__ContainsAll:  {fn: messages.ContainsAllMsg, arg: args[0]},
+		messages.MsgKey__ContainsSome: {fn: messages.ContainsSomeMsg, arg: args[1]},
+		messages.MsgKey__ContainsNone: {fn: messages.ContainsNoneMsg, arg: args[2]},
+	}
+
+	for key, shortcut := range shortcutsWithSliceStrArgs {
+		performMessageShortcutWithArgTest(t, key, shortcut)
 	}
 }

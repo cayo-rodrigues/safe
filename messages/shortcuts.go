@@ -93,3 +93,66 @@ func MaxCharsMsg(maxChars int, lang ...languages.Language) string {
 func MaxDaysRangeMsg(maxDays int, lang ...languages.Language) string {
 	return Messages.Get(getLang(lang...), MsgKey__MaxDaysRange, maxDays)
 }
+
+// A shortcut to get a message from the global messages.Messages variable
+// 
+// If no language is provided, messages.DefaultLang is used as default
+func ContainsMsg(substr string, lang ...languages.Language) string {
+	return Messages.Get(getLang(lang...), MsgKey__Contains, substr)
+}
+
+// A shortcut to get a message from the global messages.Messages variable
+// 
+// If no language is provided, messages.DefaultLang is used as default
+func NotContainsMsg(substr string, lang ...languages.Language) string {
+	return Messages.Get(getLang(lang...), MsgKey__NotContains, substr)
+}
+
+// A shortcut to get a message from the global messages.Messages variable
+// 
+// If no language is provided, messages.DefaultLang is used as default
+func ContainsAllMsg(substrs []string, lang ...languages.Language) string {
+	return Messages.Get(getLang(lang...), MsgKey__ContainsAll, substrs)
+}
+
+// A shortcut to get a message from the global messages.Messages variable
+// 
+// If no language is provided, messages.DefaultLang is used as default
+func ContainsSomeMsg(substrs []string, lang ...languages.Language) string {
+	return Messages.Get(getLang(lang...), MsgKey__ContainsSome, substrs)
+}
+
+// A shortcut to get a message from the global messages.Messages variable
+// 
+// If no language is provided, messages.DefaultLang is used as default
+func ContainsNoneMsg(substrs []string, lang ...languages.Language) string {
+	return Messages.Get(getLang(lang...), MsgKey__ContainsNone, substrs)
+}
+
+// A shortcut to get a message from the global messages.Messages variable
+// 
+// If no language is provided, messages.DefaultLang is used as default
+func GreaterThanMsg[T int | float64 | float32](n T, lang ...languages.Language) string {
+	return Messages.Get(getLang(lang...), MsgKey__GreaterThan, n)
+}
+
+// A shortcut to get a message from the global messages.Messages variable
+// 
+// If no language is provided, messages.DefaultLang is used as default
+func GreaterThanOrEqualToMsg[T int | float64 | float32](n T, lang ...languages.Language) string {
+	return Messages.Get(getLang(lang...), MsgKey__GreaterThanOrEqualTo, n)
+}
+
+// A shortcut to get a message from the global messages.Messages variable
+// 
+// If no language is provided, messages.DefaultLang is used as default
+func LessThanMsg[T int | float64 | float32](n T, lang ...languages.Language) string {
+	return Messages.Get(getLang(lang...), MsgKey__LessThan, n)
+}
+
+// A shortcut to get a message from the global messages.Messages variable
+// 
+// If no language is provided, messages.DefaultLang is used as default
+func LessThanOrEqualToMsg[T int | float64 | float32](n T, lang ...languages.Language) string {
+	return Messages.Get(getLang(lang...), MsgKey__LessThanOrEqualTo, n)
+}

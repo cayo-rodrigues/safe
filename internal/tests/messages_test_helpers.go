@@ -9,9 +9,9 @@ import (
 
 type SimpleShortcut func(lang ...languages.Language) string
 
-type ShortcutWithIntArg struct {
-	fn  func(v int, lang ...languages.Language) string
-	arg int
+type ShortcutWithArg[T int | string | []string] struct {
+	fn  func(v T, lang ...languages.Language) string
+	arg T
 }
 
 func performSimpleMessageShortcutTest(t *testing.T, key messages.MessageKey, shortcutFn SimpleShortcut, fmtArgs ...any) {
@@ -30,7 +30,7 @@ func performSimpleMessageShortcutTest(t *testing.T, key messages.MessageKey, sho
 	}
 }
 
-func performMessageShortcutWithIntArgTest(t *testing.T, key messages.MessageKey, shortcut ShortcutWithIntArg) {
+func performMessageShortcutWithArgTest[T int | string | []string](t *testing.T, key messages.MessageKey, shortcut ShortcutWithArg[T]) {
 	msg := shortcut.fn(shortcut.arg)
 	expectedMsg := messages.Messages.Get(languages.PT_BR, key, shortcut.arg)
 

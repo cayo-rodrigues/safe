@@ -39,6 +39,45 @@ func All(vals ...any) bool {
 	return true
 }
 
+// A helper function. None of the provided arguments should have a valid value (meaning they should all be zero values).
+//
+// Exactly the opposite of safe.All.
+//
+// Here is an example of how it might be used:
+//
+//	fields := Fields{
+//		{
+//			Name:  "Ie",
+//			Value: e.Ie,
+//			Rules: safe.Rules(
+//				safe.Match(safe.IEMGRegex),
+//				safe.RequiredIf(safe.None(e.PostalCode, e.Neighborhood, e.StreetType, e.StreetName, e.Number)),
+//			),
+//		},
+//	}
+//
+// In the example above, Ie is required only when none of the address fields have a value.
+//
+// In essence, we are achieving the same behavior of the example in the safe.All docs.
+func None(vals ...any) bool {
+	for _, val := range vals {
+		if HasValue(val) {
+			return false
+		}
+	}
+	return true
+}
+
+// A helper function. At least one of the provided arguments must have a valid value (meaning no zero values).
+func Some(vals ...any) bool {
+	for _, val := range vals {
+		if HasValue(val) {
+			return true
+		}
+	}
+	return false
+}
+
 // In safe, the concept of "having a value" is described as follows:
 //
 //	bool: it must be true.
@@ -118,4 +157,20 @@ func DifferenceInDays(dt1, dt2 time.Time) int {
 		diff = -diff
 	}
 	return int(diff.Hours() / 24)
+}
+
+// A helper function to convert a value of type any to a float64
+//
+// This can be used in validation functions to easily validate number fields
+func AnyToFloat64(value any) (float64, bool) {
+	switch v := value.(type) {
+	case int:
+		return float64(v), true
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	default:
+		return 0, false
+	}
 }
