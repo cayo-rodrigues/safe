@@ -1,6 +1,7 @@
 package safe
 
 import (
+	"strconv"
 	"time"
 	"unicode/utf8"
 )
@@ -216,6 +217,12 @@ func AnyToFloat64(value any) (float64, bool) {
 		return v, true
 	case float32:
 		return float64(v), true
+	case string:
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return 0, false
+		}
+		return f, true
 	default:
 		return 0, false
 	}
