@@ -39,6 +39,16 @@ func All(vals ...any) bool {
 	return true
 }
 
+// A helper function. All provided arguments must satisfy f(val).
+func AllFunc(f func(any) bool, vals ...any) bool {
+	for _, val := range vals {
+		if !f(val) {
+			return false
+		}
+	}
+	return true
+}
+
 // A helper function. None of the provided arguments should have a valid value (meaning they should all be zero values).
 //
 // Exactly the opposite of safe.All.
@@ -68,10 +78,30 @@ func None(vals ...any) bool {
 	return true
 }
 
+// A helper function. None of the provided arguments should satisfy f(val).
+func NoneFunc(f func(any) bool, vals ...any) bool {
+	for _, val := range vals {
+		if f(val) {
+			return false
+		}
+	}
+	return true
+}
+
 // A helper function. At least one of the provided arguments must have a valid value (meaning no zero values).
 func Some(vals ...any) bool {
 	for _, val := range vals {
 		if HasValue(val) {
+			return true
+		}
+	}
+	return false
+}
+
+// A helper function. At least one of the provided arguments must satisfy f(val).
+func SomeFunc(f func(any) bool, vals ...any) bool {
+	for _, val := range vals {
+		if f(val) {
 			return true
 		}
 	}
@@ -109,6 +139,22 @@ func HasValue(val any) bool {
 		return false
 	default:
 		return val != nil
+	}
+}
+
+// Exactly the same as safe.HasValue, but skip numeric values.
+//
+// This means that zero is a valid number
+func HasValue__SkipNumeric(val any) bool {
+	switch val := val.(type) {
+	case int:
+		return true
+	case float64:
+		return true
+	case float32:
+		return true
+	default:
+		return HasValue(val)
 	}
 }
 

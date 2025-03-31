@@ -43,13 +43,11 @@ func testFieldWithInvalidValues(fieldData *safe.Field, invalidValues []*invalidV
 
 		if isValid {
 			t.Errorf("field should not be valid. %s", fieldData)
-
 		}
 
 		errMsg, hasErrMsg := errors[fieldData.Name]
 		if !hasErrMsg {
 			t.Errorf("field should be present in error messages. %s", fieldData)
-
 		}
 
 		if sharedErrMsg != "" {
@@ -58,7 +56,6 @@ func testFieldWithInvalidValues(fieldData *safe.Field, invalidValues []*invalidV
 
 		if errMsg != sampleValue.ExpectedErrMsg {
 			t.Errorf("error message is wrong. %s.\nExpected: %v\nGot: %v.", fieldData, sampleValue.ExpectedErrMsg, errMsg)
-
 		}
 	}
 }

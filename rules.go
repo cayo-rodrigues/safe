@@ -30,6 +30,10 @@ func (r Rules) String() string {
 //
 // It is also responsible for providing error messages thourgh a message func.
 //
+// An interesting feature of safe.RuleSet is its FlowFunc. It allows for a rule set to
+// control the flow of validations. If the flow func returns true, then proceed with next
+// validations, otherwise stop.
+//
 // Usualy, safe.RuleSet is not used directly.
 //
 // This library exposes functions that return a *safe.RuleSet. You can also make your own!
@@ -37,8 +41,21 @@ type RuleSet struct {
 	RuleName     string
 	FieldValue   any
 	MessageFunc  func(*RuleSet) string
-	ValidateFunc func(*RuleSet) bool
+	ValidateFunc func(*RuleSet) bool // returns true if is valid, false otherwise
+	FlowFunc     func(*RuleSet) bool // returns true if should proceed, false otherwise
 	Language     languages.Language
+	Opts         *RuleSetOpts
+}
+
+type RuleSetOpts struct {
+	AcceptNumberZero bool
+}
+
+func NewRuleSet(ruleName string) *RuleSet {
+	return &RuleSet{
+		RuleName: ruleName,
+		Opts:     &RuleSetOpts{},
+	}
 }
 
 // Modifies a default message from a RuleSet, effectively letting you provide your own custom error messages.
@@ -60,6 +77,35 @@ func (rs *RuleSet) WithMessage(msg string) *RuleSet {
 	return rs
 }
 
+func (rs *RuleSet) WithOpts(opts *RuleSetOpts) *RuleSet {
+	rs.Opts = opts
+	return rs
+}
+
+func (rs *RuleSet) WithMessageFunc(f func(*RuleSet) string) *RuleSet {
+	rs.MessageFunc = f
+	return rs
+}
+
+func (rs *RuleSet) WithValidateFunc(f func(*RuleSet) bool) *RuleSet {
+	rs.ValidateFunc = f
+	return rs
+}
+
+func (rs *RuleSet) WithFlowFunc(f func(*RuleSet) bool) *RuleSet {
+	rs.FlowFunc = f
+	return rs
+}
+
+func (rs *RuleSet) HasValue() bool {
+	if rs.Opts != nil {
+		if rs.Opts.AcceptNumberZero {
+			return HasValue__SkipNumeric(rs.FieldValue)
+		}
+	}
+	return HasValue(rs.FieldValue)
+}
+
 func (rs *RuleSet) String() string {
 	return rs.RuleName
 }
@@ -76,7 +122,9 @@ func (rs *RuleSet) String() string {
 //		{
 //			Name:  "Username",
 //			Value: u.Username,
-//			Rules: safe.Rules{safe.Required()},
+//			Rules: safe.Rules{safe.Required().WithOpts(&safe.RuleSetOpts{
+//				AcceptNumberZero: true,
+//			})},
 //		},
 //		{
 //			Name:  "BooleanField",
@@ -97,8 +145,9 @@ func Required() *RuleSet {
 			return messages.MandatoryFieldMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			return HasValue(rs.FieldValue)
+			return rs.HasValue()
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -116,6 +165,7 @@ func True() *RuleSet {
 			}
 			return boolean == true
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -133,6 +183,7 @@ func False() *RuleSet {
 			}
 			return boolean == false
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -155,6 +206,7 @@ func Email() *RuleSet {
 
 			return EmailRegex.MatchString(str)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -180,6 +232,7 @@ func Phone() *RuleSet {
 
 			return PhoneRegex.MatchString(str)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -204,6 +257,7 @@ func Cpf() *RuleSet {
 
 			return CpfRegex.MatchString(str)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -228,6 +282,7 @@ func Cnpj() *RuleSet {
 
 			return CnpjRegex.MatchString(str)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -252,6 +307,7 @@ func CpfCnpj() *RuleSet {
 
 			return CpfRegex.MatchString(str) || CnpjRegex.MatchString(str)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -274,6 +330,7 @@ func CEP() *RuleSet {
 
 			return CepRegex.MatchString(str)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -298,6 +355,7 @@ func StrongPassword() *RuleSet {
 
 			return IsStrongPassword(pwd)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -325,6 +383,7 @@ func UUIDstr() *RuleSet {
 
 			return UUIDRegex.MatchString(uuid)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -349,6 +408,7 @@ func NoWhitespace() *RuleSet {
 
 			return NoWhitespaceRegex.MatchString(str)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -391,6 +451,7 @@ func UniqueList[T comparable]() *RuleSet {
 
 			return AllUnique(vals)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -420,6 +481,7 @@ func Match(regexes ...*regexp.Regexp) *RuleSet {
 
 			return false
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -456,6 +518,7 @@ func MatchList(regexes ...*regexp.Regexp) *RuleSet {
 
 			return true
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -493,6 +556,7 @@ func Min(minValue int) *RuleSet {
 
 			return false
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -530,6 +594,7 @@ func Max(maxValue int) *RuleSet {
 
 			return false
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -568,6 +633,7 @@ func OneOf[T comparable](vals []T) *RuleSet {
 			}
 			return false
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -587,6 +653,7 @@ func NotOneOf[T comparable](vals []T) *RuleSet {
 			}
 			return true
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -619,11 +686,15 @@ func RequiredUnless(vals ...any) *RuleSet {
 			return messages.MandatoryFieldMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			if HasValue(rs.FieldValue) {
+			if rs.HasValue() {
 				return true
+			}
+			if rs.Opts.AcceptNumberZero {
+				return SomeFunc(HasValue__SkipNumeric, vals...)
 			}
 			return Some(vals...)
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -656,11 +727,15 @@ func RequiredIf(vals ...any) *RuleSet {
 			return messages.MandatoryFieldMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			if HasValue(rs.FieldValue) {
+			if rs.HasValue() {
 				return true
+			}
+			if rs.Opts.AcceptNumberZero {
+				return NoneFunc(HasValue__SkipNumeric, vals...)
 			}
 			return None(vals...)
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -680,6 +755,7 @@ func After(dt time.Time) *RuleSet {
 
 			return false
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -699,6 +775,7 @@ func NotAfter(dt time.Time) *RuleSet {
 
 			return false
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -718,6 +795,7 @@ func Before(dt time.Time) *RuleSet {
 
 			return false
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -737,6 +815,7 @@ func NotBefore(dt time.Time) *RuleSet {
 
 			return false
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -759,6 +838,7 @@ func MaxDaysRange(dt time.Time, maxDays int) *RuleSet {
 
 			return false
 		},
+		Opts: &RuleSetOpts{},
 	}
 
 }
@@ -777,6 +857,7 @@ func EqualTo[T comparable](value T) *RuleSet {
 		ValidateFunc: func(rs *RuleSet) bool {
 			return rs.FieldValue == value
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -790,6 +871,7 @@ func NotEqualTo[T comparable](value T) *RuleSet {
 		ValidateFunc: func(rs *RuleSet) bool {
 			return rs.FieldValue != value
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -810,6 +892,7 @@ func GreaterThan[T int | float64 | float32](n T) *RuleSet {
 
 			return fieldVal > float64(n)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -830,6 +913,7 @@ func GreaterThanOrEqualTo[T int | float64 | float32](n T) *RuleSet {
 
 			return fieldVal >= float64(n)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -850,6 +934,7 @@ func LessThan[T int | float64 | float32](n T) *RuleSet {
 
 			return fieldVal < float64(n)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -870,6 +955,7 @@ func LessThanOrEqualTo[T int | float64 | float32](n T) *RuleSet {
 
 			return fieldVal <= float64(n)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -894,6 +980,7 @@ func Contains(substr string) *RuleSet {
 
 			return strings.Contains(str, substr)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -918,6 +1005,7 @@ func NotContains(substr string) *RuleSet {
 
 			return !strings.Contains(str, substr)
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -950,6 +1038,7 @@ func ContainsAll(substrs ...string) *RuleSet {
 			}
 			return true
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -979,6 +1068,7 @@ func ContainsSome(substrs ...string) *RuleSet {
 			}
 			return false
 		},
+		Opts: &RuleSetOpts{},
 	}
 }
 
@@ -1008,5 +1098,76 @@ func ContainsNone(substrs ...string) *RuleSet {
 			}
 			return true
 		},
+		Opts: &RuleSetOpts{},
+	}
+}
+
+// A flow rule.
+//
+// Stop validation for the field if the field has no value.
+//
+// Example usage:
+//
+//	fields := safe.Fields{
+//		{
+//			Name:  "limit",
+//			Value: filters.Limit,
+//			Rules: safe.Rules{safe.StopIfNoValue(), safe.GreaterThanOrEqualTo(10), safe.RequiredIf(filters.Offset)},
+//		},
+//		{
+//			Name:  "offset",
+//			Value: filters.Offset,
+//			Rules: safe.Rules{safe.StopIfNoValue(), safe.GreaterThanOrEqualTo(0), safe.RequiredIf(filters.Limit)},
+//		},
+//		{
+//			Name:  "order_by",
+//			Value: filters.OrderBy,
+//			Rules: safe.Rules{safe.OneOf([]string{"created_at"})},
+//		},
+//		{
+//			Name:  "search",
+//			Value: filters.Search,
+//			Rules: safe.Rules{safe.Max(128)},
+//		},
+//	}
+//
+//	fields.SetRuleOptsForAll(&safe.RuleSetOpts{
+//		AcceptNumberZero: true,
+//	})
+//
+// In the example above, email is required only when username is provided.
+func StopIfNoValue() *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.StopIfNoValue",
+		FlowFunc: func(rs *RuleSet) bool {
+			return rs.HasValue()
+		},
+		Opts: &RuleSetOpts{},
+	}
+}
+
+// A flow rule.
+//
+// Stop validation for the field if the provided condition is met.
+func StopIf(cond bool) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.StopIf",
+		FlowFunc: func(rs *RuleSet) bool {
+			return !cond
+		},
+		Opts: &RuleSetOpts{},
+	}
+}
+
+// A flow rule.
+//
+// Stop validation for the field if the provided func returns true.
+func StopIfFunc(f func(fieldValue any) bool) *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.StopIfFunc",
+		FlowFunc: func(rs *RuleSet) bool {
+			return !f(rs.FieldValue)
+		},
+		Opts: &RuleSetOpts{},
 	}
 }

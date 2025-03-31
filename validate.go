@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 
 	"github.com/cayo-rodrigues/safe/constants/languages"
@@ -100,6 +101,10 @@ func (fields *Fields) SetField(fieldName string, newField *Field) *Fields {
 		}
 	}
 
+	if newField.Name == "" {
+		newField.Name = fieldName
+	}
+
 	*fields = append(*fields, newField)
 
 	return fields
@@ -110,12 +115,41 @@ func (fields *Fields) SetField(fieldName string, newField *Field) *Fields {
 // If no language is set, it defaults to messages.DefaultLang
 func (fields *Fields) SetLanguage(lang languages.Language) *Fields {
 	for _, f := range *fields {
-		for _, r := range f.Rules {
-			r.Language = lang
+		f.SetLanguage(lang)
+	}
+
+	return fields
+}
+
+// Sets rule set options to the fields matching fieldNames
+func (fields *Fields) SetRuleOpts(fieldNames []string, opts *RuleSetOpts) *Fields {
+	for _, f := range *fields {
+		if slices.Contains(fieldNames, f.Name) {
+			f.SetRuleOpts(opts)
 		}
 	}
 
 	return fields
+}
+
+// Sets rule set options to all fields
+func (fields *Fields) SetRuleOptsForAll(opts *RuleSetOpts) *Fields {
+	for _, f := range *fields {
+		f.SetRuleOpts(opts)
+	}
+
+	return fields
+}
+
+// Retrieves a field by name. Returns nil if not found.
+func (fields *Fields) GetField(fieldName string) *Field {
+	for _, f := range *fields {
+		if f.Name == fieldName {
+			return f
+		}
+	}
+
+	return nil
 }
 
 func (fields *Fields) String() string {
@@ -141,6 +175,22 @@ type Field struct {
 	Name  string
 	Value any
 	Rules Rules
+}
+
+// Set rule opts for all rules in the field.
+func (f *Field) SetRuleOpts(opts *RuleSetOpts) *Field {
+	for _, r := range f.Rules {
+		r.Opts = opts
+	}
+	return f
+}
+
+// Set language for all rules in the field.
+func (f *Field) SetLanguage(lang languages.Language) *Field {
+	for _, r := range f.Rules {
+		r.Language = lang
+	}
+	return f
 }
 
 func (f *Field) String() string {
@@ -209,6 +259,19 @@ func Validate(fields Fields) (ErrorMessages, bool) {
 	for _, field := range fields {
 		for _, rs := range field.Rules {
 			rs.FieldValue = field.Value
+
+			if rs.FlowFunc != nil {
+				shouldProceed := rs.FlowFunc(rs)
+				if shouldProceed {
+					continue // continue to the next rule
+				}
+				break // stop validation for this field
+			}
+
+			if rs.ValidateFunc == nil {
+				continue // continue to the next rule
+			}
+
 			isValid := rs.ValidateFunc(rs)
 			if !isValid {
 				if messages == nil {
