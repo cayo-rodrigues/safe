@@ -233,6 +233,64 @@ messages.DefaultLang = myLang
 But in this case, remember that you must ensure that all messages have a fallback in `myLang`.
 In case no message is found in any language at all, the final fallback is `"T^T"`. It will not panic.
 
+## Specific caracteristics of rules
+
+As already shown, rules can have their error message customized. But they can also be modified in other ways.
+
+```go
+func (rs *RuleSet) WithMessage(msg string) *RuleSet
+func (rs *RuleSet) WithMessageFunc(f func(*RuleSet) string) *RuleSet
+func (rs *RuleSet) WithValidateFunc(f func(*RuleSet) bool) *RuleSet
+func (rs *RuleSet) WithFlowFunc(f func(*RuleSet) bool) *RuleSet
+func (rs *RuleSet) WithOpts(opts *RuleSetOpts) *RuleSet
+```
+
+### About RuleSetOpts
+
+Rules can be modified by setting options to them. Currently, there is only one available option.
+
+```go
+type RuleSetOpts struct {
+    AcceptNumberZero bool
+}
+```
+
+If this option is set to a rule, it will consider the number `0` as a non-zero value. For instance,
+if you have a `safe.Required` rule in a field, but this rule is configured with `AcceptNumberZero = true`,
+then the number `0` will pass the rule, because it has a value.
+
+```go
+fields := safe.Fields{
+    {
+        Name: "field_1",
+        Value: 0,
+        Rules: safe.Rules{
+            safe.Required().WithOpts(&safe.RuleSetOpts{
+                AcceptNumberZero: true,
+            }),
+        },
+    },
+}
+
+```
+
+In order to make things easier, `safe.Fields` exposes methods to set rule opts.
+
+```go
+func (fields *Fields) SetRuleOpts(fieldNames []string, opts *RuleSetOpts) *Fields
+func (fields *Fields) SetRuleOptsForAll(opts *RuleSetOpts) *Fields
+```
+
+### About FlowFuncs
+
+A rule may have a flow function. This function, if present, will be executed during the validation routine, before the
+validation function. If the `FlowFunc` returns `true`, then proceed with the validation. Otherwise, stop validating the field.
+There is no error message for this case. It simply stops validation.
+
+Some rules exposed by this library are purely flow rules, with no `ValidateFunc`.
+
+If a rule has both `FlowFunc` and `ValidateFunc`, then `FlowFunc` will take preference.
+
 
 ## Creating your own rules
 
@@ -245,7 +303,7 @@ MyCustomRule := &safe.RuleSet{
         // here, you can return a message for when the input is not valid
         // in case you create your own custom messages, this is the place where you could use them,
         // passing rs.Language as input
-        return fmt.Sprintf("why did you input %v?", rs.FieldValue)
+        return fmt.Sprintf("'%v'? Are you kidding?", rs.FieldValue)
     },
     ValidateFunc: func(rs *safe.RuleSet) bool {
         // in this function, you may perform any validation you want!
@@ -278,16 +336,104 @@ fields := safe.Fields{
 }
 ```
 
+## All Rules
 
+This is a list of all available rules. Hopefuly their names convey their behavior. Please refer to their individual documentations.
+
+- `safe.Required`
+- `safe.True`
+- `safe.False`
+- `safe.Email`
+- `safe.Phone`
+- `safe.Cpf`
+- `safe.Cnpj`
+- `safe.CpfCnpj`
+- `safe.CEP`
+- `safe.StrongPassword`
+- `safe.UUIDstr`
+- `safe.NoWhitespace`
+- `safe.UniqueList`
+- `safe.Match`
+- `safe.MatchList`
+- `safe.Min`
+- `safe.Max`
+- `safe.OneOf`
+- `safe.NotOneOf`
+- `safe.RequiredUnless`
+- `safe.RequiredIf`
+- `safe.After`
+- `safe.NotAfter`
+- `safe.Before`
+- `safe.NotBefore`
+- `safe.MaxDaysRange`
+- `safe.EqualTo`
+- `safe.NotEqualTo`
+- `safe.GreaterThan`
+- `safe.GreaterThanOrEqualTo`
+- `safe.LessThan`
+- `safe.LessThanOrEqualTo`
+- `safe.Contains`
+- `safe.NotContains`
+- `safe.ContainsAll`
+- `safe.ContainsSome`
+- `safe.ContainsNone`
+
+
+## Flow Rules
+
+Flow rules are used the same way as normal rules. However they control the flow of the validation. Hopefuly their names describe what they do.
+
+- `safe.StopIfNoValue`
+- `safe.StopIf`
+- `safe.StopIfFunc`
+
+Here is an example:
+
+```go
+fields := safe.Fields{
+    {
+        Name:  "limit",
+        Value: filters.Limit,
+        Rules: safe.Rules{safe.StopIfNoValue(), safe.GreaterThanOrEqualTo(10), safe.RequiredIf(filters.Offset)},
+    },
+    {
+        Name:  "offset",
+        Value: filters.Offset,
+        Rules: safe.Rules{safe.StopIfNoValue(), safe.GreaterThanOrEqualTo(0), safe.RequiredIf(filters.Limit)},
+    },
+    {
+        Name:  "order_by",
+        Value: filters.OrderBy,
+        Rules: safe.Rules{safe.OneOf([]string{"created_at"})},
+    },
+    {
+        Name:  "search",
+        Value: filters.Search,
+        Rules: safe.Rules{safe.Max(128)},
+    },
+}
+
+fields.SetRuleOptsForAll(&safe.RuleSetOpts{
+    AcceptNumberZero: true,
+})
+```
+
+In the example above, `filters.Limit` and `filters.Offset` will be validated only when they have a value. Otherwise, validation is skipped.
+
+And of course, you can create your own flow rules as well.
 
 ## Helper functions
 
 Safe exposes some helper functions that you can use, whether in the context of validation rules or not. They are:
 
 - `safe.All`
+- `safe.AllFunc`
 - `safe.None`
+- `safe.NoneFunc`
 - `safe.Some`
+- `safe.SomeFunc`
 - `safe.HasValue`
+- `safe.HasValue__SkipNumeric`
 - `safe.AllUnique`
 - `safe.IsStrongPassword`
 - `safe.DifferenceInDays`
