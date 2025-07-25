@@ -233,7 +233,7 @@ messages.DefaultLang = myLang
 But in this case, remember that you must ensure that all messages have a fallback in `myLang`.
 In case no message is found in any language at all, the final fallback is `"T^T"`. It will not panic.
 
-## Specific caracteristics of rules
+## Specific characteristics of rules
 
 As already shown, rules can have their error message customized. But they can also be modified in other ways.
 
