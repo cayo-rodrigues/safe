@@ -1135,7 +1135,8 @@ func ContainsNone(substrs ...string) *RuleSet {
 //		AcceptNumberZero: true,
 //	})
 //
-// In the example above, email is required only when username is provided.
+// In the example above, filters.Limit and filters.Offset will be validated only when they have a value.
+// Otherwise, validation is skipped.
 func StopIfNoValue() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.StopIfNoValue",
