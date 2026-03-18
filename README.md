@@ -108,7 +108,22 @@ type ApiError struct {
 }
 
 func (e ApiError) Error() string {
-    // ...
+    return fmt.Sprintf("Status=%d Msg='%s' FieldErrors='%s'", e.StatusCode, e.Msg, e.FieldErrors)
+}
+```
+
+You can use it as an `error` return value:
+
+```go
+func DoDangerousStuff(inputA, inputB float64) (float64, error) {
+	shape := safe.Fields{
+		// build fields with inputs ...
+	}
+	errors, ok := safe.Validate(shape)
+	if !ok {
+		return 0, errors
+	}
+	// continue ...
 }
 ```
 
