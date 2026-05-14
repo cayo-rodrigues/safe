@@ -9,6 +9,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Notify pkg.go.dev
         run: make pkg-go-dev VERSION=${{ github.ref_name }}
-      - uses: actions/checkout@v4
