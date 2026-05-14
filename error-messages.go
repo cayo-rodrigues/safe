@@ -23,14 +23,14 @@ import (
 type ErrorMessages map[string]string
 
 // Implements the error interface. Calls the JSON method and converts it to string.
-func (errors *ErrorMessages) Error() string {
+func (errors ErrorMessages) Error() string {
 	return string(errors.JSON())
 }
 
 // Returns the JSON version of ErrorMessages
 //
 // In case of error, returns an empty []byte
-func (errors *ErrorMessages) JSON() []byte {
+func (errors ErrorMessages) JSON() []byte {
 	errorsJson, err := json.Marshal(errors)
 	if err != nil {
 		log.Printf("Could not marshal ErrorMessages to json: %v\n", err)
