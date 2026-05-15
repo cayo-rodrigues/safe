@@ -48,10 +48,44 @@ type RuleSet struct {
 	Opts         *RuleSetOpts
 }
 
+// RuleSetOpts configures the behavior of a RuleSet at validation time.
+//
+// All fields default to false, which means rules behave in their strictest,
+// most literal form unless explicitly opted into looser behavior. Opts are
+// attached to a rule with WithOpts, or to multiple rules at once with
+// Field.SetRuleOpts and Fields.SetRuleOptsForAll.
+//
+// Example usage:
+//
+//	safe.Email().WithOpts(&safe.RuleSetOpts{TrimWhitespace: true})
 type RuleSetOpts struct {
+	// AcceptNumberZero, when true, treats the numeric zero (0, 0.0) as
+	// "having a value" for presence checks. Without it, safe.Required and
+	// related flow rules reject zero as a missing value.
+	//
+	// Consumed by: safe.Required (via HasValue), safe.RequiredUnless,
+	// safe.RequiredIf, safe.StopIfNoValue.
 	AcceptNumberZero bool
-	TrimWhitespace   bool
-	AllowWhitespace  bool
+
+	// TrimWhitespace, when true, makes string rules validate against the
+	// leading/trailing-trimmed value. Useful for inputs that may have been
+	// pasted with surrounding whitespace. The original field value is not
+	// mutated — only what the rule sees during its check.
+	//
+	// Consumed by every string-format rule (Email, Phone, Cpf, Cnpj,
+	// CpfCnpj, CEP, UUIDstr, NoWhitespace, StrongPassword, Match,
+	// Min/Max in the string case, Contains and its variants, Alpha,
+	// Numeric, AlphaNumeric, URL, StrictURL).
+	TrimWhitespace bool
+
+	// AllowWhitespace, when true, makes character-class rules accept
+	// whitespace as a valid character (e.g. "John Doe" passes safe.Alpha).
+	// A wholly-whitespace string still fails. Unlike TrimWhitespace, this
+	// does not modify the value under validation — it widens the character
+	// class that the rule considers valid.
+	//
+	// Consumed by: safe.Alpha, safe.Numeric, safe.AlphaNumeric.
+	AllowWhitespace bool
 }
 
 func NewRuleSet(ruleName string) *RuleSet {
@@ -133,34 +167,12 @@ func (rs *RuleSet) preprocessString() (string, bool) {
 	return str, true
 }
 
-// validateCharClass returns true iff every rune in str is accepted by inClass,
-// honoring the AllowWhitespace opt. When AllowWhitespace is set, whitespace
-// runes are skipped (not matched against inClass); a wholly-whitespace string
-// returns false. Pre-condition: str is non-empty (the caller handles the
-// empty-string-passes convention before calling this).
+// validateCharClass delegates to IsCharClass, threading the AllowWhitespace
+// opt as the skipWhitespace argument. Pre-condition: str is non-empty (the
+// caller handles the empty-string-passes convention before calling this).
 func (rs *RuleSet) validateCharClass(str string, inClass func(rune) bool) bool {
-	allowWS := rs.opts().AllowWhitespace
-	sawClassMember := false
-	for _, r := range str {
-		if unicode.IsSpace(r) {
-			if allowWS {
-				continue
-			}
-			return false
-		}
-		if !inClass(r) {
-			return false
-		}
-		sawClassMember = true
-	}
-	if allowWS && !sawClassMember {
-		return false
-	}
-	return true
+	return IsCharClass(str, inClass, rs.opts().AllowWhitespace)
 }
-
-func isASCIIDigit(r rune) bool   { return r >= '0' && r <= '9' }
-func isAlphaNumeric(r rune) bool { return unicode.IsLetter(r) || isASCIIDigit(r) }
 
 func (rs *RuleSet) String() string {
 	return rs.RuleName
@@ -541,7 +553,7 @@ func Numeric() *RuleSet {
 				return true
 			}
 
-			return rs.validateCharClass(str, isASCIIDigit)
+			return rs.validateCharClass(str, IsASCIIDigit)
 		},
 		Opts: &RuleSetOpts{},
 	}
@@ -570,7 +582,7 @@ func AlphaNumeric() *RuleSet {
 				return true
 			}
 
-			return rs.validateCharClass(str, isAlphaNumeric)
+			return rs.validateCharClass(str, IsAlphaNumeric)
 		},
 		Opts: &RuleSetOpts{},
 	}

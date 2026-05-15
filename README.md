@@ -262,17 +262,17 @@ func (rs *RuleSet) WithOpts(opts *RuleSetOpts) *RuleSet
 
 ### About RuleSetOpts
 
-Rules can be modified by setting options to them. Currently, there is only one available option.
+Rules can be modified by setting options to them.
 
 ```go
 type RuleSetOpts struct {
     AcceptNumberZero bool
+    TrimWhitespace   bool
+    AllowWhitespace  bool
 }
 ```
 
-If this option is set to a rule, it will consider the number `0` as a non-zero value. For instance,
-if you have a `safe.Required` rule in a field, but this rule is configured with `AcceptNumberZero = true`,
-then the number `0` will pass the rule, because it has a value.
+**`AcceptNumberZero`** — when true, the number `0` is treated as having a value. For instance, if you have a `safe.Required` rule in a field configured with `AcceptNumberZero = true`, the number `0` will pass.
 
 ```go
 fields := safe.Fields{
@@ -286,7 +286,20 @@ fields := safe.Fields{
         },
     },
 }
+```
 
+**`TrimWhitespace`** — when true, string rules validate against the leading/trailing-trimmed value. Useful for inputs that may have been pasted with surrounding whitespace. Honored by `safe.Email`, `safe.Phone`, `safe.Cpf`, `safe.Cnpj`, `safe.CpfCnpj`, `safe.CEP`, `safe.UUIDstr`, `safe.NoWhitespace`, `safe.StrongPassword`, `safe.Match`, `safe.Min` / `safe.Max` (string case), `safe.Contains`, `safe.NotContains`, `safe.ContainsAll`, `safe.ContainsSome`, `safe.ContainsNone`, `safe.Alpha`, `safe.Numeric`, `safe.AlphaNumeric`, `safe.URL`, `safe.StrictURL`.
+
+```go
+safe.Email().WithOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+// "  user@example.com  " will now pass
+```
+
+**`AllowWhitespace`** — only relevant for the character-class rules (`safe.Alpha`, `safe.Numeric`, `safe.AlphaNumeric`). When true, whitespace characters are accepted inside the value (e.g. `"John Doe"` passes `safe.Alpha`), but a wholly-whitespace string still fails. Note: this does *not* trim the value — the field's value is unchanged, only what counts as a valid character is loosened.
+
+```go
+safe.Alpha().WithOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+// "Maria das Dores" passes; "   " still fails
 ```
 
 In order to make things easier, `safe.Fields` exposes methods to set rule opts.
@@ -377,6 +390,11 @@ This is a list of all available rules. Hopefuly their names convey their behavio
 - `safe.StrongPassword`
 - `safe.UUIDstr`
 - `safe.NoWhitespace`
+- `safe.Alpha`
+- `safe.Numeric`
+- `safe.AlphaNumeric`
+- `safe.URL`
+- `safe.StrictURL`
 - `safe.UniqueList`
 - `safe.Match`
 - `safe.MatchList`
@@ -461,6 +479,9 @@ Safe exposes some helper functions that you can use, whether in the context of v
 - `safe.HasValue__SkipNumeric`
 - `safe.AllUnique`
 - `safe.IsStrongPassword`
+- `safe.IsASCIIDigit`
+- `safe.IsAlphaNumeric`
+- `safe.IsCharClass`
 - `safe.DifferenceInDays`
 - `safe.AnyToFloat64`
 
@@ -479,6 +500,8 @@ Safe also exposes some regexes for convenience. They are:
 - `safe.AddressNumberRegex`
 - `safe.UUIDRegex`
 - `safe.NoWhitespaceRegex`
+- `safe.URLRegex` (relaxed; scheme optional)
+- `safe.StrictURLRegex` (requires http:// or https://)
 - `safe.HasUppercaseRegex`
 - `safe.HasLowercaseRegex`
 - `safe.HasDigitRegex`

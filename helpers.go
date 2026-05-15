@@ -3,6 +3,7 @@ package safe
 import (
 	"strconv"
 	"time"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -204,6 +205,56 @@ func DifferenceInDays(dt1, dt2 time.Time) int {
 		diff = -diff
 	}
 	return int(diff.Hours() / 24)
+}
+
+// A helper function. Returns true when r is an ASCII digit (0-9).
+//
+// Note that this is intentionally narrower than unicode.IsDigit, which matches
+// Unicode digit codepoints (Arabic-Indic, Devanagari, etc.). Use this when you
+// mean "digit 0 through 9" specifically.
+func IsASCIIDigit(r rune) bool {
+	return r >= '0' && r <= '9'
+}
+
+// A helper function. Returns true when r is a Unicode letter (any script,
+// including accented characters like "ç" or "ã") or an ASCII digit 0-9.
+func IsAlphaNumeric(r rune) bool {
+	return unicode.IsLetter(r) || IsASCIIDigit(r)
+}
+
+// A helper function. Returns true iff every rune in str is accepted by inClass.
+//
+// When skipWhitespace is true, whitespace runes are ignored when checking, but
+// a string composed entirely of whitespace still returns false.
+//
+// Useful for writing custom character-class validation rules.
+//
+// Example:
+//
+//	isHex := func(r rune) bool {
+//		return safe.IsASCIIDigit(r) ||
+//			(r >= 'a' && r <= 'f') ||
+//			(r >= 'A' && r <= 'F')
+//	}
+//	ok := safe.IsCharClass("deadBEEF", isHex, false)
+func IsCharClass(str string, inClass func(rune) bool, skipWhitespace bool) bool {
+	sawClassMember := false
+	for _, r := range str {
+		if unicode.IsSpace(r) {
+			if skipWhitespace {
+				continue
+			}
+			return false
+		}
+		if !inClass(r) {
+			return false
+		}
+		sawClassMember = true
+	}
+	if skipWhitespace && !sawClassMember {
+		return false
+	}
+	return true
 }
 
 // A helper function to convert a value of type any to a float64
