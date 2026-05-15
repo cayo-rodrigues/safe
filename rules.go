@@ -66,7 +66,7 @@ func NewRuleSet(ruleName string) *RuleSet {
 //		{
 //			Name:  "Username",
 //			Value: u.Username,
-//			Rules: safe.Rules{safe.Required().WithMessage("Why did you leave it blank?")},
+//			Rules: safe.Rules{safe.Required().WithMessage("r u kidding?")},
 //		},
 //	}
 func (rs *RuleSet) WithMessage(msg string) *RuleSet {

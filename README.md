@@ -351,6 +351,16 @@ fields := safe.Fields{
 }
 ```
 
+Same thing could be done using the rule constructor with builder pattern.
+
+```go
+MyCustomRule := safe.NewRule("my own rule!").
+    WithMessage("r u kidding?").
+    WithValidateFunc(func (rs *safe.RuleSet) bool {
+        // ...
+    })
+```
+
 ## All Rules
 
 This is a list of all available rules. Hopefuly their names convey their behavior. Please refer to their individual documentations.
