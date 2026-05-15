@@ -15,12 +15,7 @@ func testFieldWithOkValues(fieldData *safe.Field, validValues []any, t *testing.
 	for _, sampleValue := range validValues {
 		fieldData.Value = sampleValue
 
-		errors, isValid := safe.Validate(safe.Fields{fieldData})
-
-		if !isValid {
-			t.Errorf("field should be valid. %s", fieldData)
-
-		}
+		errors := safe.Validate(safe.Fields{fieldData})
 
 		errMsg, hasErrMsg := errors[fieldData.Name]
 		if hasErrMsg {
@@ -39,9 +34,9 @@ func testFieldWithInvalidValues(fieldData *safe.Field, invalidValues []*invalidV
 	for _, sampleValue := range invalidValues {
 		fieldData.Value = sampleValue.Val
 
-		errors, isValid := safe.Validate(safe.Fields{fieldData})
+		errors := safe.Validate(safe.Fields{fieldData})
 
-		if isValid {
+		if errors == nil {
 			t.Errorf("field should not be valid. %s", fieldData)
 		}
 

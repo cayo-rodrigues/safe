@@ -132,7 +132,7 @@ func (rs *RuleSet) String() string {
 //			Rules: safe.Rules{safe.Required()},
 //		},
 //	}
-//	errors, ok := safe.Validate(fields)
+//	errors := safe.Validate(fields)
 //
 // In the example above, username field will not be valid, but the boolean field is valid,
 // because it has a value. In essence, safe.Required bypasses boolean fields.

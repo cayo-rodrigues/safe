@@ -150,6 +150,17 @@ func (fields *Fields) GetField(fieldName string) *Field {
 	return nil
 }
 
+// Just an alternative way of validating fields. You can either:
+//
+//	errs := safe.Validate(fields)
+//	
+//	// OR
+//	
+//	errs := fields.Validate()
+func (fields Fields) Validate() ErrorMessages {
+	return Validate(fields)
+}
+
 func (fields *Fields) String() string {
 	builder := strings.Builder{}
 

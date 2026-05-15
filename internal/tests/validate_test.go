@@ -13,10 +13,10 @@ func TestValidationSuccess(t *testing.T) {
 
 	fields := sampleFields(user)
 
-	errs, ok := safe.Validate(fields)
+	errs := safe.Validate(fields)
 
-	if !ok || errs != nil {
-		t.Errorf("User should be valid and have no error messages.\nValid: %v.\nError messages: %s.\nFields -> %s", ok, errs, fields)
+	if errs != nil {
+		t.Errorf("User should be valid and have no error messages.\nError messages: %s.\nFields -> %s", errs, fields)
 	}
 
 }
@@ -44,10 +44,10 @@ func TestValidationFailure(t *testing.T) {
 
 	fields.SetRules("name", nameRules).SetRules("age", ageRules)
 
-	errs, ok := safe.Validate(fields)
+	errs := safe.Validate(fields)
 
-	if ok || errs == nil {
-		t.Errorf("User should not be valid and should have error messages.\nValid: %v.\nError Messages: %s.\nFields -> %s", ok, errs, fields)
+	if errs == nil {
+		t.Errorf("User should not be valid and should have error messages.\nError Messages: %s.\nFields -> %s", errs, fields)
 	}
 
 	if msg := errs["name"]; msg != expectedNameErrMsg {

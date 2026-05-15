@@ -6,23 +6,22 @@ package safe
 // When a Field is not valid, no more validations are performed for that specific field,
 // so we proceed to the next one.
 //
-// Validate returns two values:
+// Validate returns ErrorMessages, a map in which the keys correspond
+// to the Field.Name property, and the values are string error messages
+// according to the broken rule. When all fields are valid, ErrorMessages is nil.
 //
-// 1) ErrorMessages, a map in which the keys correspond
-// to the Field.Name property, and the values are string error messages according to the broken rule.
-//
-// 2) A bool, indicating if all fields are valid or not. In case this is true, ErrorMessages is nil.
+// ErrorMessages implements the error interface.
 //
 // Example usage:
 //
 //	fields := safe.Fields{
 //		{...}
 //	}
-//	errors, ok := Validate(fields)
+//	errors := Validate(fields)
 //
-//	fmt.Println("are all fields valid?", ok)
-//	fmt.Println("is there any error message?", errors)
-func Validate(fields Fields) (ErrorMessages, bool) {
+//	fmt.Println("are all fields valid?", errors == nil)
+//	fmt.Println("what are the error messages?", errors)
+func Validate(fields Fields) ErrorMessages {
 	var messages ErrorMessages
 
 	for _, field := range fields {
@@ -53,5 +52,5 @@ func Validate(fields Fields) (ErrorMessages, bool) {
 		}
 	}
 
-	return messages, len(messages) == 0
+	return messages
 }

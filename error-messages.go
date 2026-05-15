@@ -5,7 +5,7 @@ import (
 	"log"
 )
 
-// safe.Validate returns (safe.ErrorMessages, bool).
+// safe.Validate returns safe.ErrorMessages.
 //
 // safe.ErrorMessages is a map of field names, each associated with a message.
 //
@@ -14,9 +14,9 @@ import (
 //	fields := safe.Fields{
 //		{...}
 //	}
-//	errors, ok := Validate(fields)
+//	errors := Validate(fields)
 //
-//	if !ok {
+//	if errors != nil {
 //		fmt.Println("why is username not valid?", errors["Username"])
 //		fmt.Println("why is email not valid?", errors["Email"])
 //	}

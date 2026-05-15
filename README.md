@@ -81,7 +81,7 @@ fields := safe.Fields{
 // the default is languages.PT_BR
 fields.SetLanguage(languages.EN_US)
 
-errors, isValid := safe.Validate(fields)
+errors := safe.Validate(fields)
 ```
 
 
@@ -119,8 +119,8 @@ func DoDangerousStuff(inputA, inputB float64) (float64, error) {
 	shape := safe.Fields{
 		// build fields with inputs ...
 	}
-	errors, ok := safe.Validate(shape)
-	if !ok {
+	errors := safe.Validate(shape)
+	if errors != nil {
 		return 0, errors
 	}
 	// continue ...
@@ -161,8 +161,8 @@ func TestInsertStuffService(t *testing.T) {
         }
     }
 
-    errors, ok := safe.Validate(outputShape)
-    if !ok {
+    errors := safe.Validate(outputShape)
+    if errors != nil {
         t.Fatalf("Output does not match expected conditions.\nerrors: %s\nvalue: %s", errors, outputShape)
     }
 }
