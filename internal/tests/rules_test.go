@@ -252,42 +252,45 @@ func TestAlphaRule(t *testing.T) {
 		Rules: safe.Rules{safe.Alpha()},
 	}
 
-	// Base — Unicode letters
-	invalidValues := []*invalidValue{
-		{Val: "abc123"},
-		{Val: "abc "},
-		{Val: "abc!"},
-		{Val: "  "},
-		{Val: 0},
-	}
-	okValues := []any{"abc", "ABC", "João", "Conceição"}
+	t.Run("Base", func(t *testing.T) {
+		invalidValues := []*invalidValue{
+			{Val: "abc123"},
+			{Val: "abc "},
+			{Val: "abc!"},
+			{Val: "  "},
+			{Val: 0},
+		}
+		okValues := []any{"abc", "ABC", "João", "Conceição"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 
-	// TrimWhitespace
-	fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+	t.Run("TrimWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
 
-	invalidValues = []*invalidValue{
-		{Val: "ab c"}, // internal whitespace — trim doesn't help
-	}
-	okValues = []any{"abc ", " abc", " abc ", "\tJoão\n"}
+		invalidValues := []*invalidValue{
+			{Val: "ab c"}, // internal whitespace — trim doesn't help
+		}
+		okValues := []any{"abc ", " abc", " abc ", "\tJoão\n"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 
-	// AllowWhitespace
-	fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+	t.Run("AllowWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
 
-	invalidValues = []*invalidValue{
-		{Val: "   "}, // all whitespace
-		{Val: "John1"},
-		{Val: "John!"},
-	}
-	okValues = []any{"John Doe", "Maria das Dores"}
+		invalidValues := []*invalidValue{
+			{Val: "   "}, // all whitespace
+			{Val: "John1"},
+			{Val: "John!"},
+		}
+		okValues := []any{"John Doe", "Maria das Dores"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 }
 
 func TestNumericRule(t *testing.T) {
@@ -296,42 +299,46 @@ func TestNumericRule(t *testing.T) {
 		Rules: safe.Rules{safe.Numeric()},
 	}
 
-	// Base — ASCII digits only, no negatives, no decimals
-	invalidValues := []*invalidValue{
-		{Val: "12a"},
-		{Val: "1.5"},
-		{Val: "-1"},
-		{Val: " 1"},
-		{Val: "  "},
-		{Val: 0},
-	}
-	okValues := []any{"123", "0", "000"}
+	t.Run("Base", func(t *testing.T) {
+		// ASCII digits only, no negatives, no decimals
+		invalidValues := []*invalidValue{
+			{Val: "12a"},
+			{Val: "1.5"},
+			{Val: "-1"},
+			{Val: " 1"},
+			{Val: "  "},
+			{Val: 0},
+		}
+		okValues := []any{"123", "0", "000"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 
-	// TrimWhitespace
-	fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+	t.Run("TrimWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
 
-	invalidValues = []*invalidValue{
-		{Val: "1 2"},
-	}
-	okValues = []any{" 123", "123 ", " 123 "}
+		invalidValues := []*invalidValue{
+			{Val: "1 2"},
+		}
+		okValues := []any{" 123", "123 ", " 123 "}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 
-	// AllowWhitespace
-	fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+	t.Run("AllowWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
 
-	invalidValues = []*invalidValue{
-		{Val: "   "},
-		{Val: "12 a"},
-	}
-	okValues = []any{"123 456", "1 2 3"}
+		invalidValues := []*invalidValue{
+			{Val: "   "},
+			{Val: "12 a"},
+		}
+		okValues := []any{"123 456", "1 2 3"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 }
 
 func TestAlphaNumericRule(t *testing.T) {
@@ -340,42 +347,45 @@ func TestAlphaNumericRule(t *testing.T) {
 		Rules: safe.Rules{safe.AlphaNumeric()},
 	}
 
-	// Base
-	invalidValues := []*invalidValue{
-		{Val: "abc 123"},
-		{Val: "abc!"},
-		{Val: "abc-1"},
-		{Val: "-abc1"},
-		{Val: "  "},
-		{Val: 0},
-	}
-	okValues := []any{"abc123", "João1", "ABC", "123"}
+	t.Run("Base", func(t *testing.T) {
+		invalidValues := []*invalidValue{
+			{Val: "abc 123"},
+			{Val: "abc!"},
+			{Val: "abc-1"},
+			{Val: "-abc1"},
+			{Val: "  "},
+			{Val: 0},
+		}
+		okValues := []any{"abc123", "João1", "ABC", "123"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 
-	// TrimWhitespace
-	fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+	t.Run("TrimWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
 
-	invalidValues = []*invalidValue{
-		{Val: "abc 123"}, // internal whitespace — trim doesn't help
-	}
-	okValues = []any{" abc123 ", "\tJoão1\n"}
+		invalidValues := []*invalidValue{
+			{Val: "abc 123"}, // internal whitespace — trim doesn't help
+		}
+		okValues := []any{" abc123 ", "\tJoão1\n"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 
-	// AllowWhitespace
-	fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+	t.Run("AllowWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
 
-	invalidValues = []*invalidValue{
-		{Val: "   "},
-		{Val: "abc-1"},
-	}
-	okValues = []any{"abc 123", "João da Silva 2"}
+		invalidValues := []*invalidValue{
+			{Val: "   "},
+			{Val: "abc-1"},
+		}
+		okValues := []any{"abc 123", "João da Silva 2"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 }
 
 func TestURLRule(t *testing.T) {
@@ -384,32 +394,35 @@ func TestURLRule(t *testing.T) {
 		Rules: safe.Rules{safe.URL()},
 	}
 
-	invalidValues := []*invalidValue{
-		{Val: "github"},              // no dot
-		{Val: "ftp://example.com"},   // non-http(s) scheme
-		{Val: "http://"},             // empty host
-		{Val: "https://"},            // empty host
-		{Val: "not a url"},           // contains whitespace
-		{Val: " "},
-		{Val: 0},
-	}
-	okValues := []any{
-		"github.com",
-		"www.github.com",
-		"example.com/path?q=1",
-		"http://example.com",
-		"https://example.com/path?q=1",
-		"https://sub.example.co.uk/a/b",
-	}
+	t.Run("Base", func(t *testing.T) {
+		invalidValues := []*invalidValue{
+			{Val: "github"},            // no dot
+			{Val: "ftp://example.com"}, // non-http(s) scheme
+			{Val: "http://"},           // empty host
+			{Val: "https://"},          // empty host
+			{Val: "not a url"},         // contains whitespace
+			{Val: " "},
+			{Val: 0},
+		}
+		okValues := []any{
+			"github.com",
+			"www.github.com",
+			"example.com/path?q=1",
+			"http://example.com",
+			"https://example.com/path?q=1",
+			"https://sub.example.co.uk/a/b",
+		}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 
-	// TrimWhitespace
-	fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+	t.Run("TrimWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
 
-	okValues = []any{"  github.com  ", "\thttps://example.com\n"}
-	testFieldWithOkValues(fieldData, okValues, t)
+		okValues := []any{"  github.com  ", "\thttps://example.com\n"}
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 }
 
 func TestStrictURLRule(t *testing.T) {
@@ -418,28 +431,31 @@ func TestStrictURLRule(t *testing.T) {
 		Rules: safe.Rules{safe.StrictURL()},
 	}
 
-	invalidValues := []*invalidValue{
-		{Val: "github.com"},          // no scheme — passes relaxed URL but fails StrictURL
-		{Val: "example.com"},
-		{Val: "ftp://example.com"},
-		{Val: "http://"},
-		{Val: " "},
-		{Val: 0},
-	}
-	okValues := []any{
-		"http://example.com",
-		"https://example.com/path?q=1",
-		"https://sub.example.co.uk/a/b",
-	}
+	t.Run("Base", func(t *testing.T) {
+		invalidValues := []*invalidValue{
+			{Val: "github.com"}, // no scheme — passes relaxed URL but fails StrictURL
+			{Val: "example.com"},
+			{Val: "ftp://example.com"},
+			{Val: "http://"},
+			{Val: " "},
+			{Val: 0},
+		}
+		okValues := []any{
+			"http://example.com",
+			"https://example.com/path?q=1",
+			"https://sub.example.co.uk/a/b",
+		}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 
-	// TrimWhitespace
-	fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+	t.Run("TrimWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
 
-	okValues = []any{"  http://example.com  ", "\thttps://example.com\n"}
-	testFieldWithOkValues(fieldData, okValues, t)
+		okValues := []any{"  http://example.com  ", "\thttps://example.com\n"}
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 }
 
 func TestCharClassPreservesFieldLength(t *testing.T) {
@@ -586,28 +602,32 @@ func TestMinRule(t *testing.T) {
 		Rules: safe.Rules{safe.Min(minValue)},
 	}
 
-	invalidValues := []*invalidValue{
-		{Val: 4},
-		{Val: 0},
-		{Val: -5},
-		{Val: -6},
-		{Val: 4.9999},
-	}
-	okValues := []any{5, 6}
+	t.Run("Numeric", func(t *testing.T) {
+		invalidValues := []*invalidValue{
+			{Val: 4},
+			{Val: 0},
+			{Val: -5},
+			{Val: -6},
+			{Val: 4.9999},
+		}
+		okValues := []any{5, 6}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MinValueMsg(minValue))
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MinValueMsg(minValue))
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 
-	invalidValues = []*invalidValue{
-		{Val: "1234"},
-		{Val: "1   "},
-		{Val: " "},
-		{Val: "abcq"},
-	}
-	okValues = []any{"pineapple", "apple", "abcdef"}
+	t.Run("String", func(t *testing.T) {
+		invalidValues := []*invalidValue{
+			{Val: "1234"},
+			{Val: "1   "},
+			{Val: " "},
+			{Val: "abcq"},
+		}
+		okValues := []any{"pineapple", "apple", "abcdef"}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MinCharsMsg(minValue))
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MinCharsMsg(minValue))
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 }
 
 func TestMaxRule(t *testing.T) {
@@ -618,26 +638,30 @@ func TestMaxRule(t *testing.T) {
 		Rules: safe.Rules{safe.Max(maxValue)},
 	}
 
-	invalidValues := []*invalidValue{
-		{Val: 1.000001},
-		{Val: 1.1},
-		{Val: 100},
-	}
-	okValues := []any{0, 0.5, 0.999, -1, -100}
+	t.Run("Numeric", func(t *testing.T) {
+		invalidValues := []*invalidValue{
+			{Val: 1.000001},
+			{Val: 1.1},
+			{Val: 100},
+		}
+		okValues := []any{0, 0.5, 0.999, -1, -100}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MaxValueMsg(maxValue))
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MaxValueMsg(maxValue))
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 
-	invalidValues = []*invalidValue{
-		{Val: "1234"},
-		{Val: "1   "},
-		{Val: "  "},
-		{Val: "ab"},
-	}
-	okValues = []any{"p", "a", "1", "", " "}
+	t.Run("String", func(t *testing.T) {
+		invalidValues := []*invalidValue{
+			{Val: "1234"},
+			{Val: "1   "},
+			{Val: "  "},
+			{Val: "ab"},
+		}
+		okValues := []any{"p", "a", "1", "", " "}
 
-	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MaxCharsMsg(maxValue))
-	testFieldWithOkValues(fieldData, okValues, t)
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.MaxCharsMsg(maxValue))
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
 }
 
 func TestOneOfRule(t *testing.T) {
