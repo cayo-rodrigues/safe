@@ -153,9 +153,9 @@ func (fields *Fields) GetField(fieldName string) *Field {
 // Just an alternative way of validating fields. You can either:
 //
 //	errs := safe.Validate(fields)
-//	
+//
 //	// OR
-//	
+//
 //	errs := fields.Validate()
 func (fields Fields) Validate() ErrorMessages {
 	return Validate(fields)
@@ -200,6 +200,17 @@ func (f *Field) SetLanguage(lang languages.Language) *Field {
 		r.Language = lang
 	}
 	return f
+}
+
+// Just an alternative way of validating a field. You can either:
+//
+//	err := safe.ValidateField(field)
+//
+//	// OR
+//
+//	err := field.Validate()
+func (f *Field) Validate() error {
+	return ValidateField(f)
 }
 
 func (f *Field) String() string {

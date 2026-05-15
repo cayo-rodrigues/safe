@@ -4,6 +4,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/cayo-rodrigues/safe/constants/languages"
@@ -49,6 +50,8 @@ type RuleSet struct {
 
 type RuleSetOpts struct {
 	AcceptNumberZero bool
+	TrimWhitespace   bool
+	AllowWhitespace  bool
 }
 
 func NewRuleSet(ruleName string) *RuleSet {
@@ -97,14 +100,67 @@ func (rs *RuleSet) WithFlowFunc(f func(*RuleSet) bool) *RuleSet {
 	return rs
 }
 
+// opts returns a non-nil *RuleSetOpts. When rs.Opts is nil (rare — all
+// library constructors initialize it), returns a zero-value options struct so
+// callers can read fields unconditionally without a nil-check.
+// The returned pointer must not be mutated when rs.Opts was nil.
+func (rs *RuleSet) opts() *RuleSetOpts {
+	if rs.Opts == nil {
+		return &RuleSetOpts{}
+	}
+	return rs.Opts
+}
+
 func (rs *RuleSet) HasValue() bool {
-	if rs.Opts != nil {
-		if rs.Opts.AcceptNumberZero {
-			return HasValue__SkipNumeric(rs.FieldValue)
-		}
+	if rs.opts().AcceptNumberZero {
+		return HasValue__SkipNumeric(rs.FieldValue)
 	}
 	return HasValue(rs.FieldValue)
 }
+
+// preprocessString applies opt-driven transforms to a string field value.
+// Returns the (possibly trimmed) string and whether the assertion succeeded.
+// Operates on a LOCAL copy only — neither rs.FieldValue nor the underlying
+// Field.Value is mutated, so subsequent rules in the chain see the original.
+func (rs *RuleSet) preprocessString() (string, bool) {
+	str, ok := rs.FieldValue.(string)
+	if !ok {
+		return "", false
+	}
+	if rs.opts().TrimWhitespace {
+		str = strings.TrimSpace(str)
+	}
+	return str, true
+}
+
+// validateCharClass returns true iff every rune in str is accepted by inClass,
+// honoring the AllowWhitespace opt. When AllowWhitespace is set, whitespace
+// runes are skipped (not matched against inClass); a wholly-whitespace string
+// returns false. Pre-condition: str is non-empty (the caller handles the
+// empty-string-passes convention before calling this).
+func (rs *RuleSet) validateCharClass(str string, inClass func(rune) bool) bool {
+	allowWS := rs.opts().AllowWhitespace
+	sawClassMember := false
+	for _, r := range str {
+		if unicode.IsSpace(r) {
+			if allowWS {
+				continue
+			}
+			return false
+		}
+		if !inClass(r) {
+			return false
+		}
+		sawClassMember = true
+	}
+	if allowWS && !sawClassMember {
+		return false
+	}
+	return true
+}
+
+func isASCIIDigit(r rune) bool   { return r >= '0' && r <= '9' }
+func isAlphaNumeric(r rune) bool { return unicode.IsLetter(r) || isASCIIDigit(r) }
 
 func (rs *RuleSet) String() string {
 	return rs.RuleName
@@ -187,7 +243,9 @@ func False() *RuleSet {
 	}
 }
 
-// The field must be a string with a valid email format
+// The field must be a string with a valid email format.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func Email() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Email",
@@ -195,7 +253,7 @@ func Email() *RuleSet {
 			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -213,7 +271,9 @@ func Email() *RuleSet {
 // The field must be a string with a valid phone format.
 //
 // It may or may not include symbols (like +, - and ())
-// or whitespaces
+// or whitespaces.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func Phone() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Phone",
@@ -221,7 +281,7 @@ func Phone() *RuleSet {
 			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -236,9 +296,11 @@ func Phone() *RuleSet {
 	}
 }
 
-// The field must be a string with a valid cpf format
+// The field must be a string with a valid cpf format.
 //
-// It may or may not include symbols
+// It may or may not include symbols.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func Cpf() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Cpf",
@@ -246,7 +308,7 @@ func Cpf() *RuleSet {
 			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -261,9 +323,11 @@ func Cpf() *RuleSet {
 	}
 }
 
-// The field must be a string with a valid cnpj format
+// The field must be a string with a valid cnpj format.
 //
-// It may or may not include symbols
+// It may or may not include symbols.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func Cnpj() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Cnpj",
@@ -271,7 +335,7 @@ func Cnpj() *RuleSet {
 			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -286,9 +350,11 @@ func Cnpj() *RuleSet {
 	}
 }
 
-// The field must be a string with a valid cpf or cnpj format
+// The field must be a string with a valid cpf or cnpj format.
 //
-// It may or may not include symbols
+// It may or may not include symbols.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func CpfCnpj() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.CpfCnpj",
@@ -296,7 +362,7 @@ func CpfCnpj() *RuleSet {
 			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -311,7 +377,9 @@ func CpfCnpj() *RuleSet {
 	}
 }
 
-// The field must be a string with a valid cep format
+// The field must be a string with a valid cep format.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func CEP() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.CEP",
@@ -319,7 +387,7 @@ func CEP() *RuleSet {
 			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -337,6 +405,8 @@ func CEP() *RuleSet {
 // The field must be a string with a strong password pattern.
 //
 // This means 8+ characters, with lowercase and uppercase letters, numbers and special characters.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func StrongPassword() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.StrongPassword",
@@ -344,7 +414,7 @@ func StrongPassword() *RuleSet {
 			return messages.WeakPasswordMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			pwd, ok := rs.FieldValue.(string)
+			pwd, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -365,6 +435,8 @@ func StrongPassword() *RuleSet {
 // not need this, because you will already have a uuid validation method.
 //
 // Besides that, most of the time the database itself will generate the uuids.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func UUIDstr() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.UUIDstr",
@@ -372,7 +444,7 @@ func UUIDstr() *RuleSet {
 			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			uuid, ok := rs.FieldValue.(string)
+			uuid, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -387,9 +459,12 @@ func UUIDstr() *RuleSet {
 	}
 }
 
-// The field must be a string with no whitespaces
+// The field must be a string with no whitespaces.
 //
-// This includes characters like \n (linebreaks) and \t (tabs)
+// This includes characters like \n (linebreaks) and \t (tabs).
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string
+// (allowing leading/trailing whitespace while still rejecting internal whitespace).
 func NoWhitespace() *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.NoWhitespaces",
@@ -397,7 +472,7 @@ func NoWhitespace() *RuleSet {
 			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -407,6 +482,152 @@ func NoWhitespace() *RuleSet {
 			}
 
 			return NoWhitespaceRegex.MatchString(str)
+		},
+		Opts: &RuleSetOpts{},
+	}
+}
+
+// The field must be a string containing only letters (any Unicode letter,
+// including accented characters like "João").
+//
+// Set Opts.AllowWhitespace to true to also accept whitespace characters
+// (a whitespace-only string still fails).
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
+// Empty strings are considered valid; use safe.Required to enforce presence.
+func Alpha() *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.Alpha",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.InvalidFormatMsg(rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.preprocessString()
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			return rs.validateCharClass(str, unicode.IsLetter)
+		},
+		Opts: &RuleSetOpts{},
+	}
+}
+
+// The field must be a string containing only digits 0-9.
+//
+// Set Opts.AllowWhitespace to true to also accept whitespace characters
+// (a whitespace-only string still fails).
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
+// Empty strings are considered valid; use safe.Required to enforce presence.
+//
+// Negative numbers and decimals are not valid — use safe.GreaterThan / safe.Min
+// on a typed numeric value instead.
+func Numeric() *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.Numeric",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.InvalidFormatMsg(rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.preprocessString()
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			return rs.validateCharClass(str, isASCIIDigit)
+		},
+		Opts: &RuleSetOpts{},
+	}
+}
+
+// The field must be a string containing only letters and digits.
+// Accepts any Unicode letter plus ASCII digits 0-9.
+//
+// Set Opts.AllowWhitespace to true to also accept whitespace characters
+// (a whitespace-only string still fails).
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
+// Empty strings are considered valid; use safe.Required to enforce presence.
+func AlphaNumeric() *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.AlphaNumeric",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.InvalidFormatMsg(rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.preprocessString()
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			return rs.validateCharClass(str, isAlphaNumeric)
+		},
+		Opts: &RuleSetOpts{},
+	}
+}
+
+// The field must be a string matching a URL format. The http/https scheme is
+// optional, so bare hosts like "github.com" or "example.com/path" pass.
+// Requires at least one dot in the host. Use safe.StrictURL if you want
+// to require an explicit scheme.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
+// Empty strings are considered valid; use safe.Required to enforce presence.
+func URL() *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.URL",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.InvalidFormatMsg(rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.preprocessString()
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			return URLRegex.MatchString(str)
+		},
+		Opts: &RuleSetOpts{},
+	}
+}
+
+// The field must be a string matching a full URL format with an explicit
+// http:// or https:// scheme. Bare hosts like "github.com" fail; use safe.URL
+// for the relaxed variant.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
+// Empty strings are considered valid; use safe.Required to enforce presence.
+func StrictURL() *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.StrictURL",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.InvalidFormatMsg(rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.preprocessString()
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			return StrictURLRegex.MatchString(str)
 		},
 		Opts: &RuleSetOpts{},
 	}
@@ -456,6 +677,8 @@ func UniqueList[T comparable]() *RuleSet {
 }
 
 // The field must be a string that matches all the given regexes.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func Match(regexes ...*regexp.Regexp) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Match",
@@ -463,7 +686,7 @@ func Match(regexes ...*regexp.Regexp) *RuleSet {
 			return messages.InvalidFormatMsg(rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -528,6 +751,7 @@ func MatchList(regexes ...*regexp.Regexp) *RuleSet {
 // In case it is a numeric value, it must not be less then minValue.
 //
 // As for strings, they must not have less then minValue number of characters.
+// Set Opts.TrimWhitespace to true to count characters of the trimmed string.
 func Min(minValue int) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Min",
@@ -548,6 +772,9 @@ func Min(minValue int) *RuleSet {
 			case float32:
 				return val >= float32(minValue)
 			case string:
+				if rs.opts().TrimWhitespace {
+					val = strings.TrimSpace(val)
+				}
 				if val == "" {
 					return true
 				}
@@ -566,6 +793,7 @@ func Min(minValue int) *RuleSet {
 // In case it is a numeric value, it must not greater then maxValue.
 //
 // As for strings, they must not have more then maxValue number of characters.
+// Set Opts.TrimWhitespace to true to count characters of the trimmed string.
 func Max(maxValue int) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Max",
@@ -586,6 +814,9 @@ func Max(maxValue int) *RuleSet {
 			case float32:
 				return val <= float32(maxValue)
 			case string:
+				if rs.opts().TrimWhitespace {
+					val = strings.TrimSpace(val)
+				}
 				if val == "" {
 					return true
 				}
@@ -689,7 +920,7 @@ func RequiredUnless(vals ...any) *RuleSet {
 			if rs.HasValue() {
 				return true
 			}
-			if rs.Opts.AcceptNumberZero {
+			if rs.opts().AcceptNumberZero {
 				return SomeFunc(HasValue__SkipNumeric, vals...)
 			}
 			return Some(vals...)
@@ -730,7 +961,7 @@ func RequiredIf(vals ...any) *RuleSet {
 			if rs.HasValue() {
 				return true
 			}
-			if rs.Opts.AcceptNumberZero {
+			if rs.opts().AcceptNumberZero {
 				return NoneFunc(HasValue__SkipNumeric, vals...)
 			}
 			return None(vals...)
@@ -961,7 +1192,9 @@ func LessThanOrEqualTo[T int | float64 | float32](n T) *RuleSet {
 
 // The field value must be of type string
 //
-// The value of the field must contain substr
+// The value of the field must contain substr.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func Contains(substr string) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.Contains",
@@ -969,7 +1202,7 @@ func Contains(substr string) *RuleSet {
 			return messages.ContainsMsg(substr, rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -986,7 +1219,9 @@ func Contains(substr string) *RuleSet {
 
 // The field value must be of type string
 //
-// The value of the field must not contain substr
+// The value of the field must not contain substr.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func NotContains(substr string) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.NotContains",
@@ -994,7 +1229,7 @@ func NotContains(substr string) *RuleSet {
 			return messages.NotContainsMsg(substr, rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -1014,7 +1249,9 @@ func NotContains(substr string) *RuleSet {
 // The value of the field must contain all substrs.
 //
 // Note that this is different from strings.ContainsAny, because
-// we compare substrings, not unicode code points
+// we compare substrings, not unicode code points.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func ContainsAll(substrs ...string) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.ContainsAll",
@@ -1022,7 +1259,7 @@ func ContainsAll(substrs ...string) *RuleSet {
 			return messages.ContainsAllMsg(substrs, rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -1044,7 +1281,9 @@ func ContainsAll(substrs ...string) *RuleSet {
 
 // The field value must be of type string
 //
-// The value of the field must contain at least one of substrs
+// The value of the field must contain at least one of substrs.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func ContainsSome(substrs ...string) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.ContainsSome",
@@ -1052,7 +1291,7 @@ func ContainsSome(substrs ...string) *RuleSet {
 			return messages.ContainsSomeMsg(substrs, rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}
@@ -1074,7 +1313,9 @@ func ContainsSome(substrs ...string) *RuleSet {
 
 // The field value must be of type string
 //
-// None of the substrs should be found in the field value
+// None of the substrs should be found in the field value.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
 func ContainsNone(substrs ...string) *RuleSet {
 	return &RuleSet{
 		RuleName: "safe.ContainsNone",
@@ -1082,7 +1323,7 @@ func ContainsNone(substrs ...string) *RuleSet {
 			return messages.ContainsNoneMsg(substrs, rs.Language)
 		},
 		ValidateFunc: func(rs *RuleSet) bool {
-			str, ok := rs.FieldValue.(string)
+			str, ok := rs.preprocessString()
 			if !ok {
 				return false
 			}

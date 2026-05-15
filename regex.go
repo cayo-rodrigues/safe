@@ -30,3 +30,10 @@ var HasUppercaseRegex = regexp.MustCompile(`[A-Z]`)
 var HasLowercaseRegex = regexp.MustCompile(`[a-z]`)
 var HasDigitRegex = regexp.MustCompile(`[\d]`)
 var HasSpecialCharacterRegex = regexp.MustCompile(`[@#$%&*!-+&*]`)
+
+// Relaxed URL: scheme (http/https) is optional. Requires at least one dot in
+// the host so bare words like "github" fail but "github.com" passes.
+var URLRegex = regexp.MustCompile(`^(https?:\/\/)?[^\s\/$.?#]+\.[^\s]+$`)
+
+// Strict URL: requires an explicit http:// or https:// scheme.
+var StrictURLRegex = regexp.MustCompile(`\bhttps?:\/\/[^\s\/$.?#].[^\s]*\b`)

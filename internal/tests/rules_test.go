@@ -246,6 +246,257 @@ func TestNoWhitespaceRule(t *testing.T) {
 	testFieldWithOkValues(fieldData, okValues, t)
 }
 
+func TestAlphaRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "alpha",
+		Rules: safe.Rules{safe.Alpha()},
+	}
+
+	// Base — Unicode letters
+	invalidValues := []*invalidValue{
+		{Val: "abc123"},
+		{Val: "abc "},
+		{Val: "abc!"},
+		{Val: "  "},
+		{Val: 0},
+	}
+	okValues := []any{"abc", "ABC", "João", "Conceição"}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	// TrimWhitespace
+	fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+
+	invalidValues = []*invalidValue{
+		{Val: "ab c"}, // internal whitespace — trim doesn't help
+	}
+	okValues = []any{"abc ", " abc", " abc ", "\tJoão\n"}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	// AllowWhitespace
+	fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+
+	invalidValues = []*invalidValue{
+		{Val: "   "}, // all whitespace
+		{Val: "John1"},
+		{Val: "John!"},
+	}
+	okValues = []any{"John Doe", "Maria das Dores"}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestNumericRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "numeric",
+		Rules: safe.Rules{safe.Numeric()},
+	}
+
+	// Base — ASCII digits only, no negatives, no decimals
+	invalidValues := []*invalidValue{
+		{Val: "12a"},
+		{Val: "1.5"},
+		{Val: "-1"},
+		{Val: " 1"},
+		{Val: "  "},
+		{Val: 0},
+	}
+	okValues := []any{"123", "0", "000"}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	// TrimWhitespace
+	fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+
+	invalidValues = []*invalidValue{
+		{Val: "1 2"},
+	}
+	okValues = []any{" 123", "123 ", " 123 "}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	// AllowWhitespace
+	fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+
+	invalidValues = []*invalidValue{
+		{Val: "   "},
+		{Val: "12 a"},
+	}
+	okValues = []any{"123 456", "1 2 3"}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestAlphaNumericRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "alpha_numeric",
+		Rules: safe.Rules{safe.AlphaNumeric()},
+	}
+
+	// Base
+	invalidValues := []*invalidValue{
+		{Val: "abc 123"},
+		{Val: "abc!"},
+		{Val: "abc-1"},
+		{Val: "-abc1"},
+		{Val: "  "},
+		{Val: 0},
+	}
+	okValues := []any{"abc123", "João1", "ABC", "123"}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	// TrimWhitespace
+	fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+
+	invalidValues = []*invalidValue{
+		{Val: "abc 123"}, // internal whitespace — trim doesn't help
+	}
+	okValues = []any{" abc123 ", "\tJoão1\n"}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	// AllowWhitespace
+	fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+
+	invalidValues = []*invalidValue{
+		{Val: "   "},
+		{Val: "abc-1"},
+	}
+	okValues = []any{"abc 123", "João da Silva 2"}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestURLRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "url",
+		Rules: safe.Rules{safe.URL()},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: "github"},              // no dot
+		{Val: "ftp://example.com"},   // non-http(s) scheme
+		{Val: "http://"},             // empty host
+		{Val: "https://"},            // empty host
+		{Val: "not a url"},           // contains whitespace
+		{Val: " "},
+		{Val: 0},
+	}
+	okValues := []any{
+		"github.com",
+		"www.github.com",
+		"example.com/path?q=1",
+		"http://example.com",
+		"https://example.com/path?q=1",
+		"https://sub.example.co.uk/a/b",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	// TrimWhitespace
+	fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+
+	okValues = []any{"  github.com  ", "\thttps://example.com\n"}
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestStrictURLRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "strict_url",
+		Rules: safe.Rules{safe.StrictURL()},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: "github.com"},          // no scheme — passes relaxed URL but fails StrictURL
+		{Val: "example.com"},
+		{Val: "ftp://example.com"},
+		{Val: "http://"},
+		{Val: " "},
+		{Val: 0},
+	}
+	okValues := []any{
+		"http://example.com",
+		"https://example.com/path?q=1",
+		"https://sub.example.co.uk/a/b",
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	// TrimWhitespace
+	fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+
+	okValues = []any{"  http://example.com  ", "\thttps://example.com\n"}
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestCharClassPreservesFieldLength(t *testing.T) {
+	// Invariant: validateCharClass / preprocessString do not mutate field value.
+	// Alpha(AllowWhitespace) passes on "John Doe Smith" (14 chars, letters+spaces),
+	// but Max(10) on the same field must still see 14 chars and fail.
+	fieldData := &safe.Field{
+		Name:  "alpha_max",
+		Value: "John Doe Smith",
+		Rules: safe.Rules{
+			safe.Alpha().WithOpts(&safe.RuleSetOpts{AllowWhitespace: true}),
+			safe.Max(10),
+		},
+	}
+
+	errors := safe.Validate(safe.Fields{fieldData})
+
+	if errors == nil {
+		t.Fatalf("expected Max(10) to fail on a 14-char string after Alpha(AllowWhitespace) passes")
+	}
+	if got := errors[fieldData.Name]; got != messages.MaxCharsMsg(10) {
+		t.Errorf("expected MaxCharsMsg, got: %q", got)
+	}
+}
+
+func TestTrimWhitespaceAcrossRules(t *testing.T) {
+	fields := safe.Fields{
+		{Name: "Email", Value: "  user@example.com  ", Rules: safe.Rules{safe.Email()}},
+		{Name: "Phone", Value: "  (35) 99944-5678  ", Rules: safe.Rules{safe.Phone()}},
+		{Name: "Cpf", Value: "  393.546.320-09  ", Rules: safe.Rules{safe.Cpf()}},
+		{Name: "Cnpj", Value: "  45.769.852/0001-86  ", Rules: safe.Rules{safe.Cnpj()}},
+		{Name: "CpfCnpj", Value: "  738.691.910-74  ", Rules: safe.Rules{safe.CpfCnpj()}},
+		{Name: "CEP", Value: "  77001286  ", Rules: safe.Rules{safe.CEP()}},
+		{Name: "UUIDstr", Value: "  d6c3f6e4-5e6a-4f84-89fa-b1231e8bb02b  ", Rules: safe.Rules{safe.UUIDstr()}},
+		{Name: "NoWhitespace", Value: "  abc  ", Rules: safe.Rules{safe.NoWhitespace()}},
+		{Name: "StrongPassword", Value: "  $s3NH@!X  ", Rules: safe.Rules{safe.StrongPassword()}},
+		{Name: "Match", Value: "  d6c3f6e4-5e6a-4f84-89fa-b1231e8bb02b  ", Rules: safe.Rules{safe.Match(safe.UUIDRegex)}},
+		{Name: "Contains", Value: "  apple pie  ", Rules: safe.Rules{safe.Contains("apple")}},
+		{Name: "ContainsAll", Value: "  apple pie  ", Rules: safe.Rules{safe.ContainsAll("apple", "pie")}},
+		{Name: "ContainsSome", Value: "  apple  ", Rules: safe.Rules{safe.ContainsSome("apple", "banana")}},
+		{Name: "ContainsNone", Value: "  apple  ", Rules: safe.Rules{safe.ContainsNone("zebra")}},
+		{Name: "NotContains", Value: "  apple  ", Rules: safe.Rules{safe.NotContains("zebra")}},
+		{Name: "Min", Value: "  abc  ", Rules: safe.Rules{safe.Min(3)}},
+		{Name: "Max", Value: "  abc  ", Rules: safe.Rules{safe.Max(3)}},
+	}
+
+	fields.SetRuleOptsForAll(&safe.RuleSetOpts{TrimWhitespace: true})
+
+	for _, f := range fields {
+		t.Run(f.Name, func(t *testing.T) {
+			if err := f.Validate(); err != nil {
+				t.Errorf("rule %s with TrimWhitespace should accept %q, got: %v", f.Name, f.Value, err)
+			}
+		})
+	}
+}
+
 func TestUniqueListRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "unique list",
