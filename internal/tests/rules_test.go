@@ -513,6 +513,85 @@ func TestTrimWhitespaceAcrossRules(t *testing.T) {
 	}
 }
 
+func TestJSONRule(t *testing.T) {
+	type user struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	fieldData := &safe.Field{
+		Name:  "json",
+		Rules: safe.Rules{safe.JSON[user]()},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: "not bytes"},
+		{Val: 0},
+		{Val: nil},
+		{Val: []byte("not json")},
+		{Val: []byte("{")},
+		{Val: []byte(`{"name": 123}`)},
+		{Val: []byte(`[1,2,3]`)},
+	}
+	okValues := []any{
+		[]byte(`{"name": "Alice", "age": 30}`),
+		[]byte(`{"name": "Bob"}`),
+		[]byte(`{}`),
+		[]byte(`null`),
+		[]byte{},
+		[]byte(nil),
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+}
+
+func TestJSONIntoRule(t *testing.T) {
+	type user struct {
+		Name string `json:"name"`
+		Age  int    `json:"age"`
+	}
+
+	var dst user
+
+	fieldData := &safe.Field{
+		Name:  "json_into",
+		Rules: safe.Rules{safe.JSONInto(&dst)},
+	}
+
+	invalidValues := []*invalidValue{
+		{Val: "not bytes"},
+		{Val: 0},
+		{Val: nil},
+		{Val: []byte("not json")},
+		{Val: []byte("{")},
+		{Val: []byte(`{"name": 123}`)},
+		{Val: []byte(`[1,2,3]`)},
+	}
+	okValues := []any{
+		[]byte(`{"name": "Bob"}`),
+		[]byte(`{}`),
+		[]byte(`null`),
+		[]byte{},
+		[]byte(nil),
+	}
+
+	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+	testFieldWithOkValues(fieldData, okValues, t)
+
+	t.Run("PopulatesDst", func(t *testing.T) {
+		dst = user{}
+		fieldData.Value = []byte(`{"name": "Alice", "age": 30}`)
+
+		if err := fieldData.Validate(); err != nil {
+			t.Fatalf("expected valid, got: %v", err)
+		}
+		if dst.Name != "Alice" || dst.Age != 30 {
+			t.Errorf("expected dst populated with {Alice 30}, got: %+v", dst)
+		}
+	})
+}
+
 func TestUniqueListRule(t *testing.T) {
 	fieldData := &safe.Field{
 		Name:  "unique list",
