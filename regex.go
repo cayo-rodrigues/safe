@@ -37,3 +37,6 @@ var URLRegex = regexp.MustCompile(`^(https?:\/\/)?[^\s\/$.?#]+\.[^\s]+$`)
 
 // Strict URL: requires an explicit http:// or https:// scheme.
 var StrictURLRegex = regexp.MustCompile(`\bhttps?:\/\/[^\s\/$.?#].[^\s]*\b`)
+
+// CSS hex color: leading "#" followed by 3, 6 or 8 hexadecimal digits.
+var HexColorRegex = regexp.MustCompile(`^#([a-fA-F0-9]{8}|[a-fA-F0-9]{6}|[a-fA-F0-9]{3})$`)

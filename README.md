@@ -288,14 +288,14 @@ fields := safe.Fields{
 }
 ```
 
-**`TrimWhitespace`** — when true, string rules validate against the leading/trailing-trimmed value. Useful for inputs that may have been pasted with surrounding whitespace. Honored by `safe.Email`, `safe.Phone`, `safe.Cpf`, `safe.Cnpj`, `safe.CpfCnpj`, `safe.CEP`, `safe.UUIDstr`, `safe.NoWhitespace`, `safe.StrongPassword`, `safe.Match`, `safe.Min` / `safe.Max` (string case), `safe.Contains`, `safe.NotContains`, `safe.ContainsAll`, `safe.ContainsSome`, `safe.ContainsNone`, `safe.Alpha`, `safe.Numeric`, `safe.AlphaNumeric`, `safe.URL`, `safe.StrictURL`.
+**`TrimWhitespace`** — when true, string rules validate against the leading/trailing-trimmed value. Useful for inputs that may have been pasted with surrounding whitespace. Honored by `safe.Email`, `safe.Phone`, `safe.Cpf`, `safe.Cnpj`, `safe.CpfCnpj`, `safe.CEP`, `safe.UUIDstr`, `safe.NoWhitespace`, `safe.StrongPassword`, `safe.Match`, `safe.Min` / `safe.Max` (string case), `safe.Contains`, `safe.NotContains`, `safe.ContainsAll`, `safe.ContainsSome`, `safe.ContainsNone`, `safe.Alpha`, `safe.Numeric`, `safe.AlphaNumeric`, `safe.URL`, `safe.StrictURL`, `safe.Hex`, `safe.HexColor`.
 
 ```go
 safe.Email().WithOpts(&safe.RuleSetOpts{TrimWhitespace: true})
 // "  user@example.com  " will now pass
 ```
 
-**`AllowWhitespace`** — only relevant for the character-class rules (`safe.Alpha`, `safe.Numeric`, `safe.AlphaNumeric`). When true, whitespace characters are accepted inside the value (e.g. `"John Doe"` passes `safe.Alpha`), but a wholly-whitespace string still fails. Note: this does *not* trim the value — the field's value is unchanged, only what counts as a valid character is loosened.
+**`AllowWhitespace`** — only relevant for the character-class rules (`safe.Alpha`, `safe.Numeric`, `safe.AlphaNumeric`, `safe.Hex`). When true, whitespace characters are accepted inside the value (e.g. `"John Doe"` passes `safe.Alpha`), but a wholly-whitespace string still fails. Note: this does *not* trim the value — the field's value is unchanged, only what counts as a valid character is loosened.
 
 ```go
 safe.Alpha().WithOpts(&safe.RuleSetOpts{AllowWhitespace: true})
@@ -395,6 +395,8 @@ This is a list of all available rules. Hopefuly their names convey their behavio
 - `safe.AlphaNumeric`
 - `safe.URL`
 - `safe.StrictURL`
+- `safe.Hex`
+- `safe.HexColor`
 - `safe.UniqueList`
 - `safe.Match`
 - `safe.MatchList`
@@ -481,6 +483,7 @@ Safe exposes some helper functions that you can use, whether in the context of v
 - `safe.IsStrongPassword`
 - `safe.IsASCIIDigit`
 - `safe.IsAlphaNumeric`
+- `safe.IsHexDigit`
 - `safe.IsCharClass`
 - `safe.DifferenceInDays`
 - `safe.AnyToFloat64`
@@ -502,6 +505,7 @@ Safe also exposes some regexes for convenience. They are:
 - `safe.NoWhitespaceRegex`
 - `safe.URLRegex` (relaxed; scheme optional)
 - `safe.StrictURLRegex` (requires http:// or https://)
+- `safe.HexColorRegex` (CSS hex color: `#` + 3/6/8 hex digits)
 - `safe.HasUppercaseRegex`
 - `safe.HasLowercaseRegex`
 - `safe.HasDigitRegex`

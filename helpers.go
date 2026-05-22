@@ -222,6 +222,14 @@ func IsAlphaNumeric(r rune) bool {
 	return unicode.IsLetter(r) || IsASCIIDigit(r)
 }
 
+// A helper function. Returns true when r is a hexadecimal digit
+// (0-9, a-f, A-F).
+func IsHexDigit(r rune) bool {
+	return IsASCIIDigit(r) ||
+		(r >= 'a' && r <= 'f') ||
+		(r >= 'A' && r <= 'F')
+}
+
 // A helper function. Returns true iff every rune in str is accepted by inClass.
 //
 // When skipWhitespace is true, whitespace runes are ignored when checking, but

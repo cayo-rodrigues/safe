@@ -478,6 +478,63 @@ func StrictURL() *RuleSet {
 	}
 }
 
+// The field must be a string containing only hexadecimal digits (0-9, a-f, A-F).
+// A leading "#" is not accepted; use safe.HexColor for CSS color literals.
+//
+// Set Opts.AllowWhitespace to true to also accept whitespace characters
+// (a whitespace-only string still fails).
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
+// Empty strings are considered valid; use safe.Required to enforce presence.
+func Hex() *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.Hex",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.InvalidFormatMsg(rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.preprocessString()
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			return rs.validateCharClass(str, IsHexDigit)
+		},
+		Opts: &RuleSetOpts{},
+	}
+}
+
+// The field must be a string with a valid CSS hex color literal: a leading "#"
+// followed by exactly 3, 6, or 8 hexadecimal digits (e.g. "#fff", "#FF5733",
+// "#FF5733AA"). Use safe.Hex for bare hex strings without the "#" prefix.
+//
+// Set Opts.TrimWhitespace to true to validate against the trimmed string.
+// Empty strings are considered valid; use safe.Required to enforce presence.
+func HexColor() *RuleSet {
+	return &RuleSet{
+		RuleName: "safe.HexColor",
+		MessageFunc: func(rs *RuleSet) string {
+			return messages.InvalidFormatMsg(rs.Language)
+		},
+		ValidateFunc: func(rs *RuleSet) bool {
+			str, ok := rs.preprocessString()
+			if !ok {
+				return false
+			}
+
+			if str == "" {
+				return true
+			}
+
+			return HexColorRegex.MatchString(str)
+		},
+		Opts: &RuleSetOpts{},
+	}
+}
+
 // The field must be a []byte with a valid format for JSON.
 // It should be parsable to T
 func JSON[T any]() *RuleSet {

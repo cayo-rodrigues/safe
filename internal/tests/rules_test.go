@@ -458,6 +458,91 @@ func TestStrictURLRule(t *testing.T) {
 	})
 }
 
+func TestHexRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "hex",
+		Rules: safe.Rules{safe.Hex()},
+	}
+
+	t.Run("Base", func(t *testing.T) {
+		invalidValues := []*invalidValue{
+			{Val: "#deadbeef"},  // leading "#" not allowed
+			{Val: "deadbeefz"},  // z is not hex
+			{Val: "dead beef"},  // internal whitespace
+			{Val: "0xdeadbeef"}, // 0x prefix
+			{Val: " "},
+			{Val: 0},
+		}
+		okValues := []any{"deadbeef", "DEADBEEF", "deadBEEF", "0", "abc123", "FF5733AA"}
+
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
+
+	t.Run("TrimWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+
+		invalidValues := []*invalidValue{
+			{Val: "dead beef"}, // internal whitespace — trim doesn't help
+		}
+		okValues := []any{"  deadbeef  ", "\tFF5733\n"}
+
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
+
+	t.Run("AllowWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+
+		invalidValues := []*invalidValue{
+			{Val: "   "},
+			{Val: "dead zeef"},
+		}
+		okValues := []any{"dead beef", "FF 57 33"}
+
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
+}
+
+func TestHexColorRule(t *testing.T) {
+	fieldData := &safe.Field{
+		Name:  "hex_color",
+		Rules: safe.Rules{safe.HexColor()},
+	}
+
+	t.Run("Base", func(t *testing.T) {
+		invalidValues := []*invalidValue{
+			{Val: "FF5733"},     // missing "#"
+			{Val: "#FF573"},     // 5 digits
+			{Val: "#FF57333"},   // 7 digits
+			{Val: "#GG5733"},    // non-hex
+			{Val: "#FF 57 33"},  // whitespace
+			{Val: "#"},
+			{Val: " "},
+			{Val: 0},
+		}
+		okValues := []any{
+			"#fff",
+			"#FFF",
+			"#FF5733",
+			"#ff5733",
+			"#FF5733AA",
+			"#000000",
+		}
+
+		testFieldWithInvalidValues(fieldData, invalidValues, t, messages.InvalidFormatMsg())
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
+
+	t.Run("TrimWhitespace", func(t *testing.T) {
+		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+
+		okValues := []any{"  #FF5733  ", "\t#fff\n"}
+		testFieldWithOkValues(fieldData, okValues, t)
+	})
+}
+
 func TestCharClassPreservesFieldLength(t *testing.T) {
 	// Invariant: validateCharClass / preprocessString do not mutate field value.
 	// Alpha(AllowWhitespace) passes on "John Doe Smith" (14 chars, letters+spaces),
