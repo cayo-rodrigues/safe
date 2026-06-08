@@ -116,7 +116,7 @@ func SomeFunc(f func(any) bool, vals ...any) bool {
 //
 //	string: it must have more than one rune (or character, if you will).
 //
-//	int, float64, float32: it must not be zero.
+//	any numeric type (int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64, float32, float64): it must not be zero.
 //
 //	time.Time: it must not be the zero time instant, as prescribed by time.Time.IsZero.
 //
@@ -129,31 +129,27 @@ func HasValue(val any) bool {
 		return val
 	case string:
 		return utf8.RuneCountInString(val) > 0
-	case int:
-		return val != 0
-	case float64:
-		return val != 0
-	case float32:
-		return val != 0
 	case time.Time:
 		return !val.IsZero()
 	case struct{}:
 		return false
-	default:
-		return val != nil
 	}
+
+	if f, ok := AnyToFloat64(val); ok {
+		return f != 0
+	}
+
+	return val != nil
 }
 
 // Exactly the same as safe.HasValue, but skip numeric values.
 //
 // This means that zero is a valid number
 func HasValue__SkipNumeric(val any) bool {
-	switch val := val.(type) {
-	case int:
-		return true
-	case float64:
-		return true
-	case float32:
+	switch val.(type) {
+	case int, int8, int16, int32, int64,
+		uint, uint8, uint16, uint32, uint64,
+		float32, float64:
 		return true
 	default:
 		return HasValue(val)
@@ -271,6 +267,24 @@ func IsCharClass(str string, inClass func(rune) bool, skipWhitespace bool) bool 
 func AnyToFloat64(value any) (float64, bool) {
 	switch v := value.(type) {
 	case int:
+		return float64(v), true
+	case int8:
+		return float64(v), true
+	case int16:
+		return float64(v), true
+	case int32:
+		return float64(v), true
+	case int64:
+		return float64(v), true
+	case uint:
+		return float64(v), true
+	case uint8:
+		return float64(v), true
+	case uint16:
+		return float64(v), true
+	case uint32:
+		return float64(v), true
+	case uint64:
 		return float64(v), true
 	case float64:
 		return v, true
