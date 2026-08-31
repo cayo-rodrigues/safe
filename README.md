@@ -118,9 +118,27 @@ That's it!
 
 In the example above, `errors` is a `safe.ErrorMessages`, which is just a wrapper around `map[string]string` that implements the `error` interface. It has error messages for each field. The default error message can be overwritten with the `WithMessage` func, as demonstrated in the example, for the email field.
 
-When a field fails to pass a given rule, no more subsequent rules are applied. For instance, if password is not provided, it will fail the `safe.Required` rule, hence the `safe.StrongPassword` rule will not run its validation func, and the resulting error message will be regarding the absence of a value, instead of the fact that it does not conform to a strong password standard.
-
 You can refer to the source code or the individual documentation of each function for further instructions. They are all very intuitive.
+
+## How validation works
+
+Rules are applied in the order you write them, and **the first rule that fails wins**. When a rule fails, the remaining rules of that field are skipped and its message is the one you get back. Validation then moves on to the next field.
+
+```go
+Rules: safe.Rules{safe.Required(), safe.StrongPassword()}
+```
+
+If the password is missing, it fails `safe.Required` and `safe.StrongPassword` never runs, so the message is about the missing value instead of a weak password. Ordering your rules from the most fundamental to the most specific is what gives you the message you actually want.
+
+Flow rules take part in that same sequence, but instead of producing an error they decide whether the sequence should continue at all:
+
+```go
+Rules: safe.Rules{safe.StopIfNoValue(), safe.GreaterThanOrEqualTo(1), safe.LessThanOrEqualTo(100)}
+```
+
+`safe.StopIfNoValue` stops the chain when the field is empty, so the two range rules only run when a value was actually provided. Nothing is reported for an empty field, it is simply skipped. This is how optional fields are expressed: the rules that follow describe what the value must look like *if it is there at all*.
+
+The flow rules are `safe.StopIfNoValue`, `safe.StopIf` and `safe.StopIfFunc`, and you can write your own. There is more about them in [Flow Rules](#flow-rules).
 
 ## Use cases
 
