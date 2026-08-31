@@ -4,7 +4,7 @@ COVERPROFILE := coverage.out
 .PHONY: test coverage coverage-html tag release pkg-go-dev
 
 test:
-	go test -run 'TestFields' -v ./internal/tests/
+	go test -v ./internal/tests/
 
 coverage:
 	go test ./internal/tests/ -coverpkg=./... -coverprofile=$(COVERPROFILE)
