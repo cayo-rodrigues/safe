@@ -33,7 +33,7 @@ func TestStopIfNoValueFlowRule(t *testing.T) {
 	testFieldWithInvalidValues(fieldData, invalidValues, t, messages.GreaterThanOrEqualToMsg(10))
 	testFieldWithOkValues(fieldData, okValues, t)
 
-	fieldData.SetRuleOpts(&safe.RuleSetOpts{
+	fieldData.SetRuleOpts(safe.RuleSetOpts{
 		AcceptNumberZero: true,
 	})
 

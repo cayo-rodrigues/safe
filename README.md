@@ -6,13 +6,41 @@
 
 User input is unpredictable. Never trust it. Use this library to validate anything you want, and you know you're safe!
 
+## Why safe?
+
+- **No reflection.** Rules are plain functions over values. Nothing is inspected at runtime.
+- **No struct tags.** Rules are Go code, so a typo is a compile error instead of a runtime surprise. Your editor autocompletes them and your compiler type checks them.
+- **Validates anything, not just structs.** Function arguments, query params, a computed number, a response from a third party API. If it is a value, it can be validated.
+- **Zero dependencies.** Only the standard library.
+- **Allocation free validation.** Validating an already built set of fields does no heap allocations at all.
+- **Conditional rules are first class.** `RequiredUnless`, `RequiredIf` and flow rules express "required only when..." without registering custom validators anywhere.
+- **Localized error messages.** `PT_BR` and `EN_US` out of the box, plus any language you want to add.
+- **Errors are just errors.** `safe.ErrorMessages` implements the `error` interface and marshals straight to JSON.
+
 ## Installation
 
 ```bash
 go get -u github.com/cayo-rodrigues/safe
 ```
 
-## Usage
+## Quick start
+
+```go
+fields := safe.Fields{
+    {Name: "username", Value: u.Username, Rules: safe.Rules{safe.Required(), safe.Min(3)}},
+    {Name: "email", Value: u.Email, Rules: safe.Rules{safe.Required(), safe.Email()}},
+}
+
+fields.SetLanguage(languages.EN_US)
+
+if errs := safe.Validate(fields); errs != nil {
+    fmt.Println(errs["email"]) // Invalid format
+}
+```
+
+That's the whole idea: describe your fields, list their rules, validate. The default language is `languages.PT_BR`, so `SetLanguage` is only needed when you want a different one.
+
+## A fuller example
 
 ```go
 u := &User{...}
@@ -96,15 +124,54 @@ You can refer to the source code or the individual documentation of each functio
 
 ## Use cases
 
-The fact that `safe.ErrorMessages` implements the `error` interface makes it possible to use it in any error handling case, just like any other error. 
+### Validating a request body
 
-For example, suppose you have a custom error you return from an http api. You could do something like this:
+The most common case. Since `safe.ErrorMessages` marshals to JSON, an invalid request can be answered directly with it.
+
+```go
+func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
+    input := CreateUserInput{}
+    if err := json.NewDecoder(r.Body).Decode(&input); err != nil {
+        http.Error(w, "invalid body", http.StatusBadRequest)
+        return
+    }
+
+    fields := safe.Fields{
+        {
+            Name:  "username",
+            Value: input.Username,
+            Rules: safe.Rules{safe.Required(), safe.Min(3), safe.Max(128)},
+        },
+        {
+            Name:  "email",
+            Value: input.Email,
+            Rules: safe.Rules{safe.Required(), safe.Email()},
+        },
+        {
+            Name:  "password",
+            Value: input.Password,
+            Rules: safe.Rules{safe.Required(), safe.StrongPassword()},
+        },
+    }
+
+    if errs := safe.Validate(fields); errs != nil {
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusBadRequest)
+        w.Write(errs.JSON())
+        return
+    }
+
+    // create the user ...
+}
+```
+
+Because `safe.ErrorMessages` implements the `error` interface, it also fits inside your own error types, just like any other error:
 
 ```go
 type ApiError struct {
-	StatusCode  int                `json:"status_code"`
-	Msg         string             `json:"msg"`
-	FieldErrors safe.ErrorMessages `json:"field_errors"`
+    StatusCode  int                `json:"status_code"`
+    Msg         string             `json:"msg"`
+    FieldErrors safe.ErrorMessages `json:"field_errors"`
 }
 
 func (e ApiError) Error() string {
@@ -112,61 +179,118 @@ func (e ApiError) Error() string {
 }
 ```
 
-You can use it as an `error` return value:
+### Validating query params and filters
+
+Query params are optional, loosely typed and often depend on each other. Flow rules make this straightforward: each field is only validated when it actually has a value.
 
 ```go
-func DoDangerousStuff(inputA, inputB float64) (float64, error) {
-	shape := safe.Fields{
-		// build fields with inputs ...
-	}
-	errors := safe.Validate(shape)
-	if errors != nil {
-		return 0, errors
-	}
-	// continue ...
+func ListUsersHandler(w http.ResponseWriter, r *http.Request) {
+    q := r.URL.Query()
+    limit, _ := strconv.Atoi(q.Get("limit"))
+    offset, _ := strconv.Atoi(q.Get("offset"))
+
+    fields := safe.Fields{
+        {
+            Name:  "limit",
+            Value: limit,
+            Rules: safe.Rules{safe.StopIfNoValue(), safe.GreaterThanOrEqualTo(1), safe.LessThanOrEqualTo(100)},
+        },
+        {
+            Name:  "offset",
+            Value: offset,
+            Rules: safe.Rules{safe.StopIfNoValue(), safe.GreaterThanOrEqualTo(0)},
+        },
+        {
+            Name:  "order_by",
+            Value: q.Get("order_by"),
+            Rules: safe.Rules{safe.StopIfNoValue(), safe.OneOf([]string{"created_at", "username"})},
+        },
+    }
+
+    fields.SetLanguage(languages.EN_US)
+
+    if errs := safe.Validate(fields); errs != nil {
+        // ?limit=500&order_by=nope
+        // {"limit":"Value must be less than or equal to 100.","order_by":"Unacceptable value"}
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusBadRequest)
+        w.Write(errs.JSON())
+        return
+    }
+
+    // list the users ...
 }
 ```
 
-You could also use it for unit testing:
+### Validating function arguments
+
+Values do not need to come from a struct, or from a request. They can be anything, including plain function arguments.
 
 ```go
-
-func TestInsertStuffService(t *testing.T) {
-    input := StuffInputData{
-        A: "a",
-        B: "bb",
+func Transfer(fromID, toID string, amount float64) error {
+    fields := safe.Fields{
+        {
+            Name:  "from_id",
+            Value: fromID,
+            Rules: safe.Rules{safe.Required(), safe.UUIDstr()},
+        },
+        {
+            Name:  "to_id",
+            Value: toID,
+            Rules: safe.Rules{safe.Required(), safe.UUIDstr(), safe.NotEqualTo(fromID)},
+        },
+        {
+            Name:  "amount",
+            Value: amount,
+            Rules: safe.Rules{safe.Required(), safe.GreaterThan(0.0)},
+        },
     }
+
+    if errs := safe.Validate(fields); errs != nil {
+        return errs
+    }
+
+    // move the money ...
+}
+```
+
+### Asserting outputs in tests
+
+The same idea works in reverse. Instead of describing what an input must look like, describe what an output must look like.
+
+```go
+func TestInsertStuffService(t *testing.T) {
+    input := StuffInputData{A: "a", B: "bb"}
+
     output := services.InsertStuffService(&input)
 
     outputShape := safe.Fields{
         {
-            Name: "output_ID",
+            Name:  "output_ID",
             Value: output.ID,
             Rules: safe.Rules{safe.Required(), safe.UUIDstr()},
         },
         {
-            Name: "output_A",
+            Name:  "output_A",
             Value: output.A,
             Rules: safe.Rules{safe.Required(), safe.EqualTo(input.A)},
         },
         {
-            Name: "output_B",
+            Name:  "output_B",
             Value: output.B,
             Rules: safe.Rules{safe.Required(), safe.EqualTo(input.B)},
         },
         {
-            Name: "output_CreatedAt",
-            Value: output.CreatedtAt,
+            Name:  "output_CreatedAt",
+            Value: output.CreatedAt,
             Rules: safe.Rules{safe.Required()},
-        }
+        },
     }
 
-    errors := safe.Validate(outputShape)
-    if errors != nil {
-        t.Fatalf("Output does not match expected conditions.\nerrors: %s\nvalue: %s", errors, outputShape)
+    if errs := safe.Validate(outputShape); errs != nil {
+        t.Fatalf("Output does not match expected conditions.\nerrors: %s\nvalue: %s", errs, outputShape)
     }
 }
-
 ```
 
 ## About error messages and languages
@@ -257,7 +381,7 @@ func (rs *RuleSet) WithMessage(msg string) *RuleSet
 func (rs *RuleSet) WithMessageFunc(f func(*RuleSet) string) *RuleSet
 func (rs *RuleSet) WithValidateFunc(f func(*RuleSet) bool) *RuleSet
 func (rs *RuleSet) WithFlowFunc(f func(*RuleSet) bool) *RuleSet
-func (rs *RuleSet) WithOpts(opts *RuleSetOpts) *RuleSet
+func (rs *RuleSet) WithOpts(opts RuleSetOpts) *RuleSet
 ```
 
 ### About RuleSetOpts
@@ -280,7 +404,7 @@ fields := safe.Fields{
         Name: "field_1",
         Value: 0,
         Rules: safe.Rules{
-            safe.Required().WithOpts(&safe.RuleSetOpts{
+            safe.Required().WithOpts(safe.RuleSetOpts{
                 AcceptNumberZero: true,
             }),
         },
@@ -291,22 +415,22 @@ fields := safe.Fields{
 **`TrimWhitespace`** — when true, string rules validate against the leading/trailing-trimmed value. Useful for inputs that may have been pasted with surrounding whitespace. Honored by `safe.Email`, `safe.Phone`, `safe.Cpf`, `safe.Cnpj`, `safe.CpfCnpj`, `safe.CEP`, `safe.UUIDstr`, `safe.NoWhitespace`, `safe.StrongPassword`, `safe.Match`, `safe.Min` / `safe.Max` (string case), `safe.Contains`, `safe.NotContains`, `safe.ContainsAll`, `safe.ContainsSome`, `safe.ContainsNone`, `safe.Alpha`, `safe.Numeric`, `safe.AlphaNumeric`, `safe.URL`, `safe.StrictURL`, `safe.Hex`, `safe.HexColor`.
 
 ```go
-safe.Email().WithOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+safe.Email().WithOpts(safe.RuleSetOpts{TrimWhitespace: true})
 // "  user@example.com  " will now pass
 ```
 
 **`AllowWhitespace`** — only relevant for the character-class rules (`safe.Alpha`, `safe.Numeric`, `safe.AlphaNumeric`, `safe.Hex`). When true, whitespace characters are accepted inside the value (e.g. `"John Doe"` passes `safe.Alpha`), but a wholly-whitespace string still fails. Note: this does *not* trim the value — the field's value is unchanged, only what counts as a valid character is loosened.
 
 ```go
-safe.Alpha().WithOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+safe.Alpha().WithOpts(safe.RuleSetOpts{AllowWhitespace: true})
 // "Maria das Dores" passes; "   " still fails
 ```
 
 In order to make things easier, `safe.Fields` exposes methods to set rule opts.
 
 ```go
-func (fields *Fields) SetRuleOpts(fieldNames []string, opts *RuleSetOpts) *Fields
-func (fields *Fields) SetRuleOptsForAll(opts *RuleSetOpts) *Fields
+func (fields *Fields) SetRuleOpts(fieldNames []string, opts RuleSetOpts) *Fields
+func (fields *Fields) SetRuleOptsForAll(opts RuleSetOpts) *Fields
 ```
 
 ### About FlowFuncs
@@ -367,7 +491,7 @@ fields := safe.Fields{
 Same thing could be done using the rule constructor with builder pattern.
 
 ```go
-MyCustomRule := safe.NewRule("my own rule!").
+MyCustomRule := safe.NewRuleSet("my own rule!").
     WithMessage("r u kidding?").
     WithValidateFunc(func (rs *safe.RuleSet) bool {
         // ...
@@ -458,7 +582,7 @@ fields := safe.Fields{
     },
 }
 
-fields.SetRuleOptsForAll(&safe.RuleSetOpts{
+fields.SetRuleOptsForAll(safe.RuleSetOpts{
     AcceptNumberZero: true,
 })
 ```

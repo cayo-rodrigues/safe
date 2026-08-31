@@ -23,7 +23,7 @@ import (
 //		{
 //			Name:  "Username",
 //			Value: u.Username,
-//			Rules: safe.Rules{safe.Required().WithOpts(&safe.RuleSetOpts{
+//			Rules: safe.Rules{safe.Required().WithOpts(safe.RuleSetOpts{
 //				AcceptNumberZero: true,
 //			})},
 //		},
@@ -48,7 +48,7 @@ func Required() *RuleSet {
 		ValidateFunc: func(rs *RuleSet) bool {
 			return rs.HasValue()
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -66,7 +66,7 @@ func True() *RuleSet {
 			}
 			return boolean == true
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -84,7 +84,7 @@ func False() *RuleSet {
 			}
 			return boolean == false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -109,7 +109,7 @@ func Email() *RuleSet {
 
 			return EmailRegex.MatchString(str)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -137,7 +137,7 @@ func Phone() *RuleSet {
 
 			return PhoneRegex.MatchString(str)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -164,7 +164,7 @@ func Cpf() *RuleSet {
 
 			return CpfRegex.MatchString(str)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -191,7 +191,7 @@ func Cnpj() *RuleSet {
 
 			return CnpjRegex.MatchString(str)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -218,7 +218,7 @@ func CpfCnpj() *RuleSet {
 
 			return CpfRegex.MatchString(str) || CnpjRegex.MatchString(str)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -243,7 +243,7 @@ func CEP() *RuleSet {
 
 			return CepRegex.MatchString(str)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -270,7 +270,7 @@ func StrongPassword() *RuleSet {
 
 			return IsStrongPassword(pwd)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -300,7 +300,7 @@ func UUIDstr() *RuleSet {
 
 			return UUIDRegex.MatchString(uuid)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -328,7 +328,7 @@ func NoWhitespace() *RuleSet {
 
 			return NoWhitespaceRegex.MatchString(str)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -357,7 +357,7 @@ func Alpha() *RuleSet {
 
 			return rs.validateCharClass(str, unicode.IsLetter)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -388,7 +388,7 @@ func Numeric() *RuleSet {
 
 			return rs.validateCharClass(str, IsASCIIDigit)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -417,7 +417,7 @@ func AlphaNumeric() *RuleSet {
 
 			return rs.validateCharClass(str, IsAlphaNumeric)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -446,7 +446,7 @@ func URL() *RuleSet {
 
 			return URLRegex.MatchString(str)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -474,7 +474,7 @@ func StrictURL() *RuleSet {
 
 			return StrictURLRegex.MatchString(str)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -503,7 +503,7 @@ func Hex() *RuleSet {
 
 			return rs.validateCharClass(str, IsHexDigit)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -531,7 +531,7 @@ func HexColor() *RuleSet {
 
 			return HexColorRegex.MatchString(str)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -560,7 +560,7 @@ func JSON[T any]() *RuleSet {
 
 			return true
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -590,7 +590,7 @@ func JSONInto[T any](dst *T) *RuleSet {
 
 			return true
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -633,7 +633,7 @@ func UniqueList[T comparable]() *RuleSet {
 
 			return AllUnique(vals)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -665,7 +665,7 @@ func Match(regexes ...*regexp.Regexp) *RuleSet {
 
 			return false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -702,7 +702,7 @@ func MatchList(regexes ...*regexp.Regexp) *RuleSet {
 
 			return true
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -733,7 +733,7 @@ func Min(minValue int) *RuleSet {
 			case float32:
 				return val >= float32(minValue)
 			case string:
-				if rs.opts().TrimWhitespace {
+				if rs.Opts.TrimWhitespace {
 					val = strings.TrimSpace(val)
 				}
 				if val == "" {
@@ -744,7 +744,7 @@ func Min(minValue int) *RuleSet {
 
 			return false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -775,7 +775,7 @@ func Max(maxValue int) *RuleSet {
 			case float32:
 				return val <= float32(maxValue)
 			case string:
-				if rs.opts().TrimWhitespace {
+				if rs.Opts.TrimWhitespace {
 					val = strings.TrimSpace(val)
 				}
 				if val == "" {
@@ -786,7 +786,7 @@ func Max(maxValue int) *RuleSet {
 
 			return false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -825,7 +825,7 @@ func OneOf[T comparable](vals []T) *RuleSet {
 			}
 			return false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -845,7 +845,7 @@ func NotOneOf[T comparable](vals []T) *RuleSet {
 			}
 			return true
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -881,12 +881,12 @@ func RequiredUnless(vals ...any) *RuleSet {
 			if rs.HasValue() {
 				return true
 			}
-			if rs.opts().AcceptNumberZero {
+			if rs.Opts.AcceptNumberZero {
 				return SomeFunc(HasValue__SkipNumeric, vals...)
 			}
 			return Some(vals...)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -922,12 +922,12 @@ func RequiredIf(vals ...any) *RuleSet {
 			if rs.HasValue() {
 				return true
 			}
-			if rs.opts().AcceptNumberZero {
+			if rs.Opts.AcceptNumberZero {
 				return NoneFunc(HasValue__SkipNumeric, vals...)
 			}
 			return None(vals...)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -947,7 +947,7 @@ func After(dt time.Time) *RuleSet {
 
 			return false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -967,7 +967,7 @@ func NotAfter(dt time.Time) *RuleSet {
 
 			return false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -987,7 +987,7 @@ func Before(dt time.Time) *RuleSet {
 
 			return false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -1007,7 +1007,7 @@ func NotBefore(dt time.Time) *RuleSet {
 
 			return false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -1030,7 +1030,7 @@ func MaxDaysRange(dt time.Time, maxDays int) *RuleSet {
 
 			return false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 
 }
@@ -1049,7 +1049,7 @@ func EqualTo[T comparable](value T) *RuleSet {
 		ValidateFunc: func(rs *RuleSet) bool {
 			return rs.FieldValue == value
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1063,7 +1063,7 @@ func NotEqualTo[T comparable](value T) *RuleSet {
 		ValidateFunc: func(rs *RuleSet) bool {
 			return rs.FieldValue != value
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1084,7 +1084,7 @@ func GreaterThan[T int | float64 | float32](n T) *RuleSet {
 
 			return fieldVal > float64(n)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1105,7 +1105,7 @@ func GreaterThanOrEqualTo[T int | float64 | float32](n T) *RuleSet {
 
 			return fieldVal >= float64(n)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1126,7 +1126,7 @@ func LessThan[T int | float64 | float32](n T) *RuleSet {
 
 			return fieldVal < float64(n)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1147,7 +1147,7 @@ func LessThanOrEqualTo[T int | float64 | float32](n T) *RuleSet {
 
 			return fieldVal <= float64(n)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1174,7 +1174,7 @@ func Contains(substr string) *RuleSet {
 
 			return strings.Contains(str, substr)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1201,7 +1201,7 @@ func NotContains(substr string) *RuleSet {
 
 			return !strings.Contains(str, substr)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1236,7 +1236,7 @@ func ContainsAll(substrs ...string) *RuleSet {
 			}
 			return true
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1268,7 +1268,7 @@ func ContainsSome(substrs ...string) *RuleSet {
 			}
 			return false
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1300,7 +1300,7 @@ func ContainsNone(substrs ...string) *RuleSet {
 			}
 			return true
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1333,7 +1333,7 @@ func ContainsNone(substrs ...string) *RuleSet {
 //		},
 //	}
 //
-//	fields.SetRuleOptsForAll(&safe.RuleSetOpts{
+//	fields.SetRuleOptsForAll(safe.RuleSetOpts{
 //		AcceptNumberZero: true,
 //	})
 //
@@ -1345,7 +1345,7 @@ func StopIfNoValue() *RuleSet {
 		FlowFunc: func(rs *RuleSet) bool {
 			return rs.HasValue()
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1358,7 +1358,7 @@ func StopIf(cond bool) *RuleSet {
 		FlowFunc: func(rs *RuleSet) bool {
 			return !cond
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }
 
@@ -1371,6 +1371,6 @@ func StopIfFunc(f func(fieldValue any) bool) *RuleSet {
 		FlowFunc: func(rs *RuleSet) bool {
 			return !f(rs.FieldValue)
 		},
-		Opts: &RuleSetOpts{},
+		Opts: RuleSetOpts{},
 	}
 }

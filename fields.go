@@ -92,9 +92,9 @@ func (fields *Fields) SetValues(values map[string]any) *Fields {
 
 // Create a new field or update an existing field.
 func (fields *Fields) SetField(fieldName string, newField *Field) *Fields {
-	for _, f := range *fields {
+	for i, f := range *fields {
 		if f.Name == fieldName {
-			f = newField
+			(*fields)[i] = newField
 			return fields
 		}
 	}
@@ -120,7 +120,7 @@ func (fields *Fields) SetLanguage(lang languages.Language) *Fields {
 }
 
 // Sets rule set options to the fields matching fieldNames
-func (fields *Fields) SetRuleOpts(fieldNames []string, opts *RuleSetOpts) *Fields {
+func (fields *Fields) SetRuleOpts(fieldNames []string, opts RuleSetOpts) *Fields {
 	for _, f := range *fields {
 		if slices.Contains(fieldNames, f.Name) {
 			f.SetRuleOpts(opts)
@@ -131,7 +131,7 @@ func (fields *Fields) SetRuleOpts(fieldNames []string, opts *RuleSetOpts) *Field
 }
 
 // Sets rule set options to all fields
-func (fields *Fields) SetRuleOptsForAll(opts *RuleSetOpts) *Fields {
+func (fields *Fields) SetRuleOptsForAll(opts RuleSetOpts) *Fields {
 	for _, f := range *fields {
 		f.SetRuleOpts(opts)
 	}
@@ -187,7 +187,7 @@ type Field struct {
 }
 
 // Set rule opts for all rules in the field.
-func (f *Field) SetRuleOpts(opts *RuleSetOpts) *Field {
+func (f *Field) SetRuleOpts(opts RuleSetOpts) *Field {
 	for _, r := range f.Rules {
 		r.Opts = opts
 	}

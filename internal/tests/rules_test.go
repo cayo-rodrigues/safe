@@ -267,7 +267,7 @@ func TestAlphaRule(t *testing.T) {
 	})
 
 	t.Run("TrimWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{TrimWhitespace: true})
 
 		invalidValues := []*invalidValue{
 			{Val: "ab c"}, // internal whitespace — trim doesn't help
@@ -279,7 +279,7 @@ func TestAlphaRule(t *testing.T) {
 	})
 
 	t.Run("AllowWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{AllowWhitespace: true})
 
 		invalidValues := []*invalidValue{
 			{Val: "   "}, // all whitespace
@@ -316,7 +316,7 @@ func TestNumericRule(t *testing.T) {
 	})
 
 	t.Run("TrimWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{TrimWhitespace: true})
 
 		invalidValues := []*invalidValue{
 			{Val: "1 2"},
@@ -328,7 +328,7 @@ func TestNumericRule(t *testing.T) {
 	})
 
 	t.Run("AllowWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{AllowWhitespace: true})
 
 		invalidValues := []*invalidValue{
 			{Val: "   "},
@@ -363,7 +363,7 @@ func TestAlphaNumericRule(t *testing.T) {
 	})
 
 	t.Run("TrimWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{TrimWhitespace: true})
 
 		invalidValues := []*invalidValue{
 			{Val: "abc 123"}, // internal whitespace — trim doesn't help
@@ -375,7 +375,7 @@ func TestAlphaNumericRule(t *testing.T) {
 	})
 
 	t.Run("AllowWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{AllowWhitespace: true})
 
 		invalidValues := []*invalidValue{
 			{Val: "   "},
@@ -418,7 +418,7 @@ func TestURLRule(t *testing.T) {
 	})
 
 	t.Run("TrimWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{TrimWhitespace: true})
 
 		okValues := []any{"  github.com  ", "\thttps://example.com\n"}
 		testFieldWithOkValues(fieldData, okValues, t)
@@ -451,7 +451,7 @@ func TestStrictURLRule(t *testing.T) {
 	})
 
 	t.Run("TrimWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{TrimWhitespace: true})
 
 		okValues := []any{"  http://example.com  ", "\thttps://example.com\n"}
 		testFieldWithOkValues(fieldData, okValues, t)
@@ -480,7 +480,7 @@ func TestHexRule(t *testing.T) {
 	})
 
 	t.Run("TrimWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{TrimWhitespace: true})
 
 		invalidValues := []*invalidValue{
 			{Val: "dead beef"}, // internal whitespace — trim doesn't help
@@ -492,7 +492,7 @@ func TestHexRule(t *testing.T) {
 	})
 
 	t.Run("AllowWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{AllowWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{AllowWhitespace: true})
 
 		invalidValues := []*invalidValue{
 			{Val: "   "},
@@ -513,11 +513,11 @@ func TestHexColorRule(t *testing.T) {
 
 	t.Run("Base", func(t *testing.T) {
 		invalidValues := []*invalidValue{
-			{Val: "FF5733"},     // missing "#"
-			{Val: "#FF573"},     // 5 digits
-			{Val: "#FF57333"},   // 7 digits
-			{Val: "#GG5733"},    // non-hex
-			{Val: "#FF 57 33"},  // whitespace
+			{Val: "FF5733"},    // missing "#"
+			{Val: "#FF573"},    // 5 digits
+			{Val: "#FF57333"},  // 7 digits
+			{Val: "#GG5733"},   // non-hex
+			{Val: "#FF 57 33"}, // whitespace
 			{Val: "#"},
 			{Val: " "},
 			{Val: 0},
@@ -536,7 +536,7 @@ func TestHexColorRule(t *testing.T) {
 	})
 
 	t.Run("TrimWhitespace", func(t *testing.T) {
-		fieldData.SetRuleOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+		fieldData.SetRuleOpts(safe.RuleSetOpts{TrimWhitespace: true})
 
 		okValues := []any{"  #FF5733  ", "\t#fff\n"}
 		testFieldWithOkValues(fieldData, okValues, t)
@@ -551,7 +551,7 @@ func TestCharClassPreservesFieldLength(t *testing.T) {
 		Name:  "alpha_max",
 		Value: "John Doe Smith",
 		Rules: safe.Rules{
-			safe.Alpha().WithOpts(&safe.RuleSetOpts{AllowWhitespace: true}),
+			safe.Alpha().WithOpts(safe.RuleSetOpts{AllowWhitespace: true}),
 			safe.Max(10),
 		},
 	}
@@ -587,7 +587,7 @@ func TestTrimWhitespaceAcrossRules(t *testing.T) {
 		{Name: "Max", Value: "  abc  ", Rules: safe.Rules{safe.Max(3)}},
 	}
 
-	fields.SetRuleOptsForAll(&safe.RuleSetOpts{TrimWhitespace: true})
+	fields.SetRuleOptsForAll(safe.RuleSetOpts{TrimWhitespace: true})
 
 	for _, f := range fields {
 		t.Run(f.Name, func(t *testing.T) {

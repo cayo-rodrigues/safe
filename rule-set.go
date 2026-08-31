@@ -40,7 +40,7 @@ type RuleSet struct {
 	ValidateFunc func(*RuleSet) bool // returns true if is valid, false otherwise
 	FlowFunc     func(*RuleSet) bool // returns true if should proceed, false otherwise
 	Language     languages.Language
-	Opts         *RuleSetOpts
+	Opts         RuleSetOpts
 }
 
 // RuleSetOpts configures the behavior of a RuleSet at validation time.
@@ -52,7 +52,7 @@ type RuleSet struct {
 //
 // Example usage:
 //
-//	safe.Email().WithOpts(&safe.RuleSetOpts{TrimWhitespace: true})
+//	safe.Email().WithOpts(safe.RuleSetOpts{TrimWhitespace: true})
 type RuleSetOpts struct {
 	// AcceptNumberZero, when true, treats the numeric zero (0, 0.0) as
 	// "having a value" for presence checks. Without it, safe.Required and
@@ -86,7 +86,7 @@ type RuleSetOpts struct {
 func NewRuleSet(ruleName string) *RuleSet {
 	return &RuleSet{
 		RuleName: ruleName,
-		Opts:     &RuleSetOpts{},
+		Opts:     RuleSetOpts{},
 	}
 }
 
@@ -109,7 +109,7 @@ func (rs *RuleSet) WithMessage(msg string) *RuleSet {
 	return rs
 }
 
-func (rs *RuleSet) WithOpts(opts *RuleSetOpts) *RuleSet {
+func (rs *RuleSet) WithOpts(opts RuleSetOpts) *RuleSet {
 	rs.Opts = opts
 	return rs
 }
@@ -129,19 +129,8 @@ func (rs *RuleSet) WithFlowFunc(f func(*RuleSet) bool) *RuleSet {
 	return rs
 }
 
-// opts returns a non-nil *RuleSetOpts. When rs.Opts is nil (rare — all
-// library constructors initialize it), returns a zero-value options struct so
-// callers can read fields unconditionally without a nil-check.
-// The returned pointer must not be mutated when rs.Opts was nil.
-func (rs *RuleSet) opts() *RuleSetOpts {
-	if rs.Opts == nil {
-		return &RuleSetOpts{}
-	}
-	return rs.Opts
-}
-
 func (rs *RuleSet) HasValue() bool {
-	if rs.opts().AcceptNumberZero {
+	if rs.Opts.AcceptNumberZero {
 		return HasValue__SkipNumeric(rs.FieldValue)
 	}
 	return HasValue(rs.FieldValue)
@@ -156,7 +145,7 @@ func (rs *RuleSet) preprocessString() (string, bool) {
 	if !ok {
 		return "", false
 	}
-	if rs.opts().TrimWhitespace {
+	if rs.Opts.TrimWhitespace {
 		str = strings.TrimSpace(str)
 	}
 	return str, true
@@ -166,7 +155,7 @@ func (rs *RuleSet) preprocessString() (string, bool) {
 // opt as the skipWhitespace argument. Pre-condition: str is non-empty (the
 // caller handles the empty-string-passes convention before calling this).
 func (rs *RuleSet) validateCharClass(str string, inClass func(rune) bool) bool {
-	return IsCharClass(str, inClass, rs.opts().AllowWhitespace)
+	return IsCharClass(str, inClass, rs.Opts.AllowWhitespace)
 }
 
 func (rs *RuleSet) String() string {

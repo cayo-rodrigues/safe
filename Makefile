@@ -1,9 +1,17 @@
 MODULE := github.com/cayo-rodrigues/safe
+COVERPROFILE := coverage.out
 
-.PHONY: test tag release pkg-go-dev
+.PHONY: test coverage coverage-html tag release pkg-go-dev
 
 test:
-	go test -v ./internal/tests/
+	go test -run 'TestFields' -v ./internal/tests/
+
+coverage:
+	go test ./internal/tests/ -coverpkg=./... -coverprofile=$(COVERPROFILE)
+	go tool cover -func=$(COVERPROFILE)
+
+coverage-html: coverage
+	go tool cover -html=$(COVERPROFILE)
 
 # Usage: make tag VERSION=vX.Y.Z
 tag:
